@@ -4,7 +4,7 @@ import { getAuctionPrices, getBazaarPrices } from '$lib/server/skyblock-api';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const GET: RequestHandler = async ({ request }) => {
 	const authHeader = request.headers.get('Authorization');
 	const cronSecret = env.CRON_SECRET;
 

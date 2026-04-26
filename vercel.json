@@ -3,8 +3,7 @@
   "crons": [
     {
       "path": "/api/reload-prices",
-      "schedule": "0 * * * *",
-      "method": "POST"
+      "schedule": "0 * * * *"
     }
   ]
 }
