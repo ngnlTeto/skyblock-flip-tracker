@@ -1,7 +1,7 @@
-import { pgTable, serial, integer, text } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, text, doublePrecision, varchar } from 'drizzle-orm/pg-core';
 
-export const task = pgTable('task', {
-	id: serial('id').primaryKey(),
-	title: text('title').notNull(),
-	priority: integer('priority').notNull().default(1)
+export const prices = pgTable('prices', {
+	itemId: varchar('item_id', { length: 256 }).primaryKey(),
+	buyPrice: doublePrecision('buy_price'),
+	sellPrice: doublePrecision('sell_price')
 });
