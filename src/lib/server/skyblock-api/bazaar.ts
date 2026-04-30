@@ -10,8 +10,8 @@ export async function getBazaarPrices() {
 
 	for (const [productId, product] of Object.entries(bazaarResponse.products)) {
 		priceMap.set(productId, {
-			buyPrice: product.quick_status.buyPrice,
-			sellPrice: product.quick_status.sellPrice
+			buyPrice: product.quick_status.sellPrice,
+			sellPrice: product.quick_status.buyPrice
 		});
 	}
 
