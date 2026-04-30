@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus, Pencil, Trash2, Search, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Search, X, RefreshCw } from 'lucide-svelte';
 	import ItemSearch from '$lib/components/item-search.svelte';
 
 	let { data }: PageProps = $props();
@@ -16,6 +16,7 @@
 	let searchQuery = $state('');
 	let showAddDialog = $state(false);
 	let editingFlip = $state<typeof flips[0] | null>(null);
+	let isReloading = $state(false);
 
 	// Form state for craft flip
 	let formData = $state({
@@ -128,6 +129,18 @@
 		}
 	}
 
+	// Reload prices
+	async function reloadPrices() {
+		isReloading = true;
+		try {
+			await fetch('/api/reload-prices', { method: 'GET' });
+			// Refresh the page to get updated prices
+			window.location.reload();
+		} finally {
+			isReloading = false;
+		}
+	}
+
 	// Stats from server data
 	let stats = $derived(data.stats);
 </script>
@@ -139,10 +152,15 @@
 			<h1 class="text-3xl font-bold">SkyBlock Craft Flip Tracker</h1>
 			<p class="text-muted-foreground">Track and manage your hypixel skyblock craft flips</p>
 		</div>
-		<Button onclick={openAddDialog}>
-			<Plus class="mr-2 h-4 w-4" />
-			Add Craft Flip
-		</Button>
+		<div class="flex items-center gap-2">
+			<Button variant="outline" size="icon" onclick={reloadPrices} disabled={isReloading} title="Reload Prices">
+				<RefreshCw class="h-4 w-4 {isReloading ? 'animate-spin' : ''}" />
+			</Button>
+			<Button onclick={openAddDialog}>
+				<Plus class="mr-2 h-4 w-4" />
+				Add Craft Flip
+			</Button>
+		</div>
 	</div>
 
 	<!-- Statistics Cards -->
