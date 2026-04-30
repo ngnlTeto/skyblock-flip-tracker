@@ -29,7 +29,7 @@ export const load = (async () => {
 
 		// Calculate output revenue (sell price)
 		const outputPrice = priceMap.get(flip.outputItemId);
-		const outputRevenue = (outputPrice?.sellPrice || 0) * flip.outputQuantity;
+		const outputRevenue = (outputPrice?.sellPrice || 0) * flip.outputQuantity!;
 
 		// Profit = revenue - input cost
 		const profit = outputRevenue - totalInputCost;

@@ -15,7 +15,7 @@ export const flips = pgTable('flips', {
 	outputItemName: varchar('output_item_name', { length: 256 }),
 	// Input items (ingredients) - stored as JSON array
 	// Each item: { itemId: string, itemName: string, quantity: number }
-	inputItems: jsonb('input_items').notNull().default([]),
+	inputItems: jsonb('input_items').notNull().default([]).$type<{ itemId: string; itemName: string; quantity: number }[]>(),
 	// Quantity of output items produced
 	outputQuantity: integer('output_quantity').default(1),
 	isActive: boolean('is_active').default(true),

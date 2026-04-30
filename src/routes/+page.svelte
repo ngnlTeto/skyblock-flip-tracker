@@ -15,7 +15,7 @@
 	let prices = $derived(data.prices || []);
 	let searchQuery = $state('');
 	let showAddDialog = $state(false);
-	let editingFlip = $state<typeof flips[0] | null>(null);
+	let editingFlip = $state<(typeof flips)[0] | null>(null);
 	let isReloading = $state(false);
 
 	// Form state for craft flip
@@ -29,9 +29,10 @@
 
 	// Filtered flips based on search
 	let filteredFlips = $derived(
-		flips.filter(flip =>
-			flip.outputItemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			(flip.outputItemName && flip.outputItemName.toLowerCase().includes(searchQuery.toLowerCase()))
+		flips.filter(
+			(flip) =>
+				flip.outputItemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				(flip.outputItemName && flip.outputItemName.toLowerCase().includes(searchQuery.toLowerCase()))
 		)
 	);
 
@@ -45,7 +46,7 @@
 
 	// Get price info for an item
 	function getPrice(itemId: string) {
-		return prices.find(p => p.itemId === itemId);
+		return prices.find((p) => p.itemId === itemId);
 	}
 
 	// Open add dialog
@@ -62,7 +63,7 @@
 	}
 
 	// Open edit dialog
-	function openEditDialog(flip: typeof flips[0]) {
+	function openEditDialog(flip: (typeof flips)[0]) {
 		formData = {
 			outputItemId: flip.outputItemId,
 			outputItemName: flip.outputItemName || '',
@@ -110,7 +111,6 @@
 		});
 
 		if (res.ok) {
-			const savedFlip = await res.json();
 			// Fetch the updated flip with calculations
 			const flipRes = await fetch('/api/flips');
 			const updatedFlips = await flipRes.json();
@@ -125,7 +125,7 @@
 
 		const res = await fetch(`/api/flips?id=${id}`, { method: 'DELETE' });
 		if (res.ok) {
-			flips = flips.filter(f => f.id !== id);
+			flips = flips.filter((f) => f.id !== id);
 		}
 	}
 
@@ -145,9 +145,9 @@
 	let stats = $derived(data.stats);
 </script>
 
-<div class="container mx-auto py-8 px-4">
+<div class="container mx-auto px-4 py-8">
 	<!-- Header -->
-	<div class="flex items-center justify-between mb-8">
+	<div class="mb-8 flex items-center justify-between">
 		<div>
 			<h1 class="text-3xl font-bold">SkyBlock Craft Flip Tracker</h1>
 			<p class="text-muted-foreground">Track and manage your hypixel skyblock craft flips</p>
@@ -164,7 +164,7 @@
 	</div>
 
 	<!-- Statistics Cards -->
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+	<div class="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 		<Card.Root>
 			<Card.Header>
 				<Card.Title class="text-sm font-medium">Total Flips</Card.Title>
@@ -182,7 +182,7 @@
 				<Card.Description>All active flips</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				<div class="text-2xl font-bold {((stats?.totalPotentialProfit || 0) >= 0) ? 'text-green-500' : 'text-red-500'}">
+				<div class="text-2xl font-bold {(stats?.totalPotentialProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
 					{formatCoins(stats?.totalPotentialProfit || 0)}
 				</div>
 				<p class="text-xs text-muted-foreground">Combined profit potential</p>
@@ -195,7 +195,7 @@
 				<Card.Description>Per flip</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				<div class="text-2xl font-bold {((stats?.avgProfit || 0) >= 0) ? 'text-green-500' : 'text-red-500'}">
+				<div class="text-2xl font-bold {(stats?.avgProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
 					{formatCoins(stats?.avgProfit || 0)}
 				</div>
 				<p class="text-xs text-muted-foreground">Mean profit per flip</p>
@@ -222,14 +222,10 @@
 	</div>
 
 	<!-- Search and Filters -->
-	<div class="flex items-center gap-4 mb-4">
-		<div class="relative flex-1 max-w-sm">
-			<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-			<Input
-				placeholder="Search flips..."
-				bind:value={searchQuery}
-				class="pl-10"
-			/>
+	<div class="mb-4 flex items-center gap-4">
+		<div class="relative max-w-sm flex-1">
+			<Search class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+			<Input placeholder="Search flips..." bind:value={searchQuery} class="pl-10" />
 		</div>
 	</div>
 
@@ -261,7 +257,7 @@
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
 									{#each flip.inputItems as input}
-										<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-secondary text-xs">
+										<span class="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-xs">
 											{input.itemId}
 											<span class="text-muted-foreground">×{input.quantity}</span>
 										</span>
@@ -310,10 +306,12 @@
 		<Dialog.Header>
 			<Dialog.Title>{editingFlip ? 'Edit Craft Flip' : 'Add New Craft Flip'}</Dialog.Title>
 			<Dialog.Description>
-				{editingFlip ? 'Update the craft flip details below.' : 'Add a new craft flip. Select output item and input ingredients from your prices table.'}
+				{editingFlip
+					? 'Update the craft flip details below.'
+					: 'Add a new craft flip. Select output item and input ingredients from your prices table.'}
 			</Dialog.Description>
 		</Dialog.Header>
-		<div class="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+		<div class="grid max-h-[60vh] gap-4 overflow-y-auto py-4">
 			<!-- Output Item -->
 			<div class="grid gap-2">
 				<label for="outputItem" class="text-sm font-medium">Output Item (Result)</label>
@@ -331,12 +329,7 @@
 			<!-- Output Quantity -->
 			<div class="grid gap-2">
 				<label for="outputQuantity" class="text-sm font-medium">Output Quantity</label>
-				<Input
-					id="outputQuantity"
-					type="number"
-					min="1"
-					bind:value={formData.outputQuantity}
-				/>
+				<Input id="outputQuantity" type="number" min="1" bind:value={formData.outputQuantity} />
 			</div>
 
 			<!-- Input Items -->
@@ -344,7 +337,7 @@
 				<div class="flex items-center justify-between">
 					<label class="text-sm font-medium">Input Items (Ingredients)</label>
 					<Button variant="outline" size="sm" onclick={addInputItem}>
-						<Plus class="h-4 w-4 mr-1" /> Add Ingredient
+						<Plus class="mr-1 h-4 w-4" /> Add Ingredient
 					</Button>
 				</div>
 				<div class="space-y-2">
@@ -356,12 +349,7 @@
 								placeholder="Search ingredient..."
 								onchange={(itemId) => onInputItemSelect(index, itemId)}
 							/>
-							<Input
-								type="number"
-								min="1"
-								class="w-20"
-								bind:value={formData.inputItems[index].quantity}
-							/>
+							<Input type="number" min="1" class="w-20" bind:value={formData.inputItems[index].quantity} />
 							<Button variant="ghost" size="icon" onclick={() => removeInputItem(index)}>
 								<X class="h-4 w-4" />
 							</Button>
@@ -376,11 +364,7 @@
 			<!-- Notes -->
 			<div class="grid gap-2">
 				<label for="notes" class="text-sm font-medium">Notes (optional)</label>
-				<Input
-					id="notes"
-					placeholder="Any additional notes..."
-					bind:value={formData.notes}
-				/>
+				<Input id="notes" placeholder="Any additional notes..." bind:value={formData.notes} />
 			</div>
 		</div>
 		<Dialog.Footer>
