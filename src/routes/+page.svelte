@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Plus, Pencil, Trash2, Search, X } from 'lucide-svelte';
+	import ItemSearch from '$lib/components/item-search.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -298,20 +299,15 @@
 			<!-- Output Item -->
 			<div class="grid gap-2">
 				<label for="outputItem" class="text-sm font-medium">Output Item (Result)</label>
-				<select
-					id="outputItem"
-					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-					bind:value={formData.outputItemId}
-					onchange={(e) => {
-						const target = e.target as HTMLSelectElement;
-						formData.outputItemName = target.options[target.selectedIndex]?.text || '';
+				<ItemSearch
+					items={prices}
+					value={formData.outputItemId}
+					placeholder="Search output item..."
+					onchange={(itemId) => {
+						formData.outputItemId = itemId;
+						formData.outputItemName = itemId;
 					}}
-				>
-					<option value="">Select output item...</option>
-					{#each prices as price}
-						<option value={price.itemId}>{price.itemId}</option>
-					{/each}
-				</select>
+				/>
 			</div>
 
 			<!-- Output Quantity -->
@@ -336,16 +332,12 @@
 				<div class="space-y-2">
 					{#each formData.inputItems as input, index}
 						<div class="flex items-center gap-2">
-							<select
-								class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm flex-1"
+							<ItemSearch
+								items={prices}
 								value={input.itemId}
-								onchange={(e) => onInputItemSelect(index, (e.target as HTMLSelectElement).value)}
-							>
-								<option value="">Select ingredient...</option>
-								{#each prices as price}
-									<option value={price.itemId}>{price.itemId}</option>
-								{/each}
-							</select>
+								placeholder="Search ingredient..."
+								onchange={(itemId) => onInputItemSelect(index, itemId)}
+							/>
 							<Input
 								type="number"
 								min="1"

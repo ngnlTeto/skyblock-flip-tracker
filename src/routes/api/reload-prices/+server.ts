@@ -5,13 +5,6 @@ import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 
 export const GET: RequestHandler = async ({ request }) => {
-	const authHeader = request.headers.get('Authorization');
-	const cronSecret = env.CRON_SECRET;
-
-	if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-		return new Response('Unauthorized', { status: 401 });
-	}
-
 	const bazaarPrices = await getBazaarPrices();
 	const auctionPrices = await getAuctionPrices();
 
