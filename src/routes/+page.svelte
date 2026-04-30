@@ -11,8 +11,8 @@
 	let { data }: PageProps = $props();
 
 	// Local state for flips (synced from server data)
-	let flips = $state(data.flips || []);
-	let prices = $state(data.prices || []);
+	let flips = $derived(data.flips || []);
+	let prices = $derived(data.prices || []);
 	let searchQuery = $state('');
 	let showAddDialog = $state(false);
 	let editingFlip = $state<typeof flips[0] | null>(null);

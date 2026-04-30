@@ -27,20 +27,22 @@ export async function getAuctionPrices(): Promise<Map<string, Prices>> {
 
 		// Process each auction
 		for (const auction of response.auctions) {
-			// Skip auctions without any bids
-			if (auction.bids.length === 0) {
+			// Only process BIN (Buy It Now) auctions - they don't require bids
+			if (!auction.bin) {
 				continue;
 			}
 
-			// Get the highest bid (last bid in the array is the current highest)
-			const latestBid = auction.bids[auction.bids.length - 1];
-			const buyPrice = latestBid.amount;
-			const sellPrice = auction.bin ? auction.starting_bid : auction.highest_bid_amount;
+			const itemName = auction.item_name;
+			const price = auction.starting_bid;
 
-			pricesMap.set(auction.item_name, {
-				buyPrice,
-				sellPrice
-			});
+			// Only keep the lowest BIN price for each item
+			const existing = pricesMap.get(itemName);
+			if (!existing || price < existing.buyPrice) {
+				pricesMap.set(itemName, {
+					buyPrice: price,
+					sellPrice: price
+				});
+			}
 		}
 	}
 	return pricesMap;
