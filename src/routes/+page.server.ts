@@ -29,7 +29,7 @@ export const load = (async () => {
 
 		// Calculate output revenue (sell price)
 		const outputPrice = priceMap.get(flip.outputItemId);
-		const outputRevenue = (outputPrice?.sellPrice || 0) * flip.outputQuantity!;
+		const outputRevenue = (outputPrice?.sellPrice || 0) * (flip.outputQuantity ?? 1);
 
 		// Profit = revenue - input cost
 		const profit = outputRevenue - totalInputCost;
@@ -52,8 +52,8 @@ export const load = (async () => {
 
 	// Find best flip
 	const bestFlip = flipsWithCalculations.reduce((best, flip) => {
-		const profit = flip.profit || 0;
-		const bestProfit = best ? (best.profit || 0) : 0;
+		const profit = flip.profit ?? 0;
+		const bestProfit = best ? (best.profit ?? 0) : 0;
 		return profit > bestProfit ? flip : best;
 	}, null as typeof flipsWithCalculations[0] | null);
 

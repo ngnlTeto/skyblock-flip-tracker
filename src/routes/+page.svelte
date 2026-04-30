@@ -68,7 +68,7 @@
 			outputItemId: flip.outputItemId,
 			outputItemName: flip.outputItemName || '',
 			inputItems: [...flip.inputItems],
-			outputQuantity: flip.outputQuantity,
+			outputQuantity: flip.outputQuantity ?? 1,
 			notes: flip.notes || ''
 		};
 		editingFlip = flip;
@@ -90,7 +90,7 @@
 		const price = getPrice(itemId);
 		formData.inputItems[index] = {
 			itemId,
-			itemName: price?.itemId || itemId,
+			itemName: price?.itemId ?? itemId,
 			quantity: formData.inputItems[index].quantity
 		};
 	}
@@ -235,6 +235,7 @@
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
+						<Table.Head class="w-12"></Table.Head>
 						<Table.Head>Output Item</Table.Head>
 						<Table.Head>Input Items</Table.Head>
 						<Table.Head class="text-right">Input Cost</Table.Head>
@@ -247,6 +248,14 @@
 				<Table.Body>
 					{#each filteredFlips as flip (flip.id)}
 						<Table.Row>
+							<Table.Cell>
+								<img
+									src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{flip.outputItemId}.png"
+									alt={flip.outputItemId}
+									class="h-8 w-8 rounded"
+									onerror={(e) => e.currentTarget.style.display = 'none'}
+								/>
+							</Table.Cell>
 							<Table.Cell class="font-medium">
 								<div>{flip.outputItemId}</div>
 								{#if flip.outputItemName}
@@ -256,8 +265,14 @@
 							</Table.Cell>
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
-									{#each flip.inputItems as input}
+									{#each flip.inputItems as input (input.itemId)}
 										<span class="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-xs">
+											<img
+												src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{input.itemId}.png"
+												alt={input.itemId}
+												class="h-4 w-4 rounded"
+												onerror={(e) => e.currentTarget.style.display = 'none'}
+											/>
 											{input.itemId}
 											<span class="text-muted-foreground">×{input.quantity}</span>
 										</span>
@@ -289,7 +304,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan="7" class="text-center py-8 text-muted-foreground">
+								<Table.Cell colspan={8} class="text-center py-8 text-muted-foreground">
 								No craft flips found. Add your first craft flip to get started!
 							</Table.Cell>
 						</Table.Row>
@@ -302,7 +317,7 @@
 
 <!-- Add/Edit Dialog -->
 <Dialog.Root bind:open={showAddDialog}>
-	<Dialog.Content class="sm:max-w-[600px]">
+	<Dialog.Content class="sm:max-w-150">
 		<Dialog.Header>
 			<Dialog.Title>{editingFlip ? 'Edit Craft Flip' : 'Add New Craft Flip'}</Dialog.Title>
 			<Dialog.Description>
@@ -335,13 +350,13 @@
 			<!-- Input Items -->
 			<div class="grid gap-2">
 				<div class="flex items-center justify-between">
-					<label class="text-sm font-medium">Input Items (Ingredients)</label>
+					<label for="input-items" class="text-sm font-medium">Input Items (Ingredients)</label>
 					<Button variant="outline" size="sm" onclick={addInputItem}>
 						<Plus class="mr-1 h-4 w-4" /> Add Ingredient
 					</Button>
 				</div>
 				<div class="space-y-2">
-					{#each formData.inputItems as input, index}
+					{#each formData.inputItems as input, index (input.itemId)}
 						<div class="flex items-center gap-2">
 							<ItemSearch
 								items={prices}

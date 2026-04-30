@@ -4,7 +4,7 @@ import { getAuctionPrices, getBazaarPrices } from '$lib/server/skyblock-api';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 
-export const GET: RequestHandler = async ({ request }) => {
+export const GET: RequestHandler = async () => {
 	const bazaarPrices = await getBazaarPrices();
 	const auctionPrices = await getAuctionPrices();
 

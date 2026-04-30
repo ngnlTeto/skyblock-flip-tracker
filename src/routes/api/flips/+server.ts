@@ -38,7 +38,7 @@ export const GET = async () => {
 
 		// Calculate output revenue (sell price)
 		const outputPrice = priceMap.get(flip.outputItemId);
-		const outputRevenue = (outputPrice?.sellPrice || 0) * flip.outputQuantity;
+		const outputRevenue = (outputPrice?.sellPrice || 0) * (flip.outputQuantity ?? 1);
 
 		// Profit = revenue - input cost
 		const profit = outputRevenue - totalInputCost;
@@ -62,7 +62,7 @@ export const POST = async ({ request }) => {
 		outputItemId: body.outputItemId,
 		outputItemName: body.outputItemName || body.outputItemId,
 		inputItems: body.inputItems || [],
-		outputQuantity: body.outputQuantity || 1,
+		outputQuantity: body.outputQuantity ?? 1,
 		isActive: body.isActive ?? true,
 		notes: body.notes || null
 	}).returning();
@@ -83,7 +83,7 @@ export const PUT = async ({ request }) => {
 			outputItemId: body.outputItemId,
 			outputItemName: body.outputItemName,
 			inputItems: body.inputItems,
-			outputQuantity: body.outputQuantity,
+			outputQuantity: body.outputQuantity ?? 1,
 		})
 		.where(eq(flips.id, body.id))
 		.returning();

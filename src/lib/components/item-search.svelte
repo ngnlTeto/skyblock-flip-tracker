@@ -15,11 +15,12 @@
 	let isOpen = $state(false);
 	let inputRef = $state<HTMLInputElement | null>(null);
 
-	let filteredItems = $derived(
+	let baseItems = $derived(
 		searchQuery
-			? items.filter((item) => item.itemId.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 20) // Limit to 20 items for performance
-			: items.slice(0, 20)
+			? items.filter((item) => item.itemId.toLowerCase().includes(searchQuery.toLowerCase()))
+			: items
 	);
+	let filteredItems = $derived(baseItems.slice(0, 20)); // Limit to 20 items for performance
 
 	function selectItem(itemId: string) {
 		onchange(itemId);
