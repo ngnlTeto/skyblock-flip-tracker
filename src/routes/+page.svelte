@@ -230,32 +230,22 @@
 	</div>
 
 	<!-- Flips Table -->
-	<Card.Root>
+	<Card.Root class="py-0">
 		<Card.Content class="p-0">
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head class="w-12"></Table.Head>
 						<Table.Head>Output Item</Table.Head>
 						<Table.Head>Input Items</Table.Head>
 						<Table.Head class="text-right">Input Cost</Table.Head>
 						<Table.Head class="text-right">Output Value</Table.Head>
 						<Table.Head class="text-right">Profit</Table.Head>
-						<Table.Head class="text-right">Margin %</Table.Head>
 						<Table.Head class="text-right">Actions</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
 					{#each filteredFlips as flip (flip.id)}
 						<Table.Row>
-							<Table.Cell>
-								<img
-									src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{flip.outputItemId}.png"
-									alt={flip.outputItemId}
-									class="h-8 w-8 rounded"
-									onerror={(e) => e.currentTarget.style.display = 'none'}
-								/>
-							</Table.Cell>
 							<Table.Cell class="font-medium">
 								<div>{flip.outputItemId}</div>
 								{#if flip.outputItemName}
@@ -266,15 +256,23 @@
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
 									{#each flip.inputItems as input (input.itemId)}
-										<span class="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-xs">
-											<img
-												src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{input.itemId}.png"
-												alt={input.itemId}
-												class="h-4 w-4 rounded"
-												onerror={(e) => e.currentTarget.style.display = 'none'}
-											/>
-											{input.itemId}
-											<span class="text-muted-foreground">×{input.quantity}</span>
+										{@const inputPrice = getPrice(input.itemId)}
+										<span class="inline-flex flex-col items-start gap-0.5 rounded bg-secondary px-2 py-0.5 text-xs">
+											<div class="flex items-center gap-1">
+												<img
+													src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{input.itemId}.png"
+													alt={input.itemId}
+													class="h-4 w-4 rounded"
+													onerror={(e) => (e.currentTarget.style.display = 'none')}
+												/>
+												{input.itemId}
+												<span class="text-muted-foreground">×{input.quantity}</span>
+											</div>
+											{#if inputPrice?.buyPrice}
+												<div class="text-muted-foreground">
+													{formatCoins(inputPrice.buyPrice * input.quantity)} coins
+												</div>
+											{/if}
 										</span>
 									{/each}
 								</div>
@@ -283,13 +281,6 @@
 							<Table.Cell class="text-right">{formatCoins(flip.outputRevenue || 0)}</Table.Cell>
 							<Table.Cell class="text-right {(flip.profit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
 								{formatCoins(flip.profit || 0)}
-							</Table.Cell>
-							<Table.Cell class="text-right">
-								{#if flip.totalInputCost > 0}
-									{(((flip.profit || 0) / flip.totalInputCost) * 100).toFixed(1)}%
-								{:else}
-									-
-								{/if}
 							</Table.Cell>
 							<Table.Cell class="text-right">
 								<div class="flex items-center justify-end gap-2">
@@ -304,7 +295,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-								<Table.Cell colspan={8} class="text-center py-8 text-muted-foreground">
+							<Table.Cell colspan={8} class="text-center py-8 text-muted-foreground">
 								No craft flips found. Add your first craft flip to get started!
 							</Table.Cell>
 						</Table.Row>
