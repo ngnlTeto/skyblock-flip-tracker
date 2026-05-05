@@ -5,9 +5,7 @@ export async function getAuctionPrices(): Promise<Map<string, Prices>> {
 	const pricesMap = new Map<string, Prices>();
 
 	// Fetch first page to get totalPages
-	const firstResponse: AuctionsResponse = await instaFetch(
-		'https://api.hypixel.net/v2/skyblock/auctions?page=0'
-	);
+	const firstResponse: AuctionsResponse = await instaFetch('https://api.hypixel.net/v2/skyblock/auctions?page=0');
 
 	if (!firstResponse.success) {
 		throw new Error('Failed to fetch auction data');
@@ -17,9 +15,7 @@ export async function getAuctionPrices(): Promise<Map<string, Prices>> {
 
 	// Fetch all pages sequentially
 	for (let page = 0; page < totalPages; page++) {
-		const response: AuctionsResponse = await instaFetch(
-			`https://api.hypixel.net/v2/skyblock/auctions?page=${page}`
-		);
+		const response: AuctionsResponse = await instaFetch(`https://api.hypixel.net/v2/skyblock/auctions?page=${page}`);
 
 		if (!response.success) {
 			throw new Error(`Failed to fetch auction data for page ${page}`);

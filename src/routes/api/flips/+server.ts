@@ -19,14 +19,14 @@ export const GET = async () => {
 	const allFlips = await db.select().from(flips).orderBy(desc(flips.createdAt));
 
 	// Get all unique item IDs to fetch prices
-	const outputItemIds = allFlips.map(f => f.outputItemId);
-	const inputItemIds = [...new Set(allFlips.flatMap(f => f.inputItems.map((i: any) => i.itemId)))];
+	const outputItemIds = allFlips.map((f) => f.outputItemId);
+	const inputItemIds = [...new Set(allFlips.flatMap((f) => f.inputItems.map((i: any) => i.itemId)))];
 	const allItemIds = [...new Set([...outputItemIds, ...inputItemIds])];
 
 	const priceMap = await getPricesForItems(allItemIds);
 
 	// Calculate costs and profits for each flip
-	const flipsWithCalculations = allFlips.map(flip => {
+	const flipsWithCalculations = allFlips.map((flip) => {
 		// Calculate input cost (buy prices)
 		let totalInputCost = 0;
 		for (const input of flip.inputItems) {
@@ -58,14 +58,18 @@ export const GET = async () => {
 export const POST = async ({ request }) => {
 	const body = await request.json();
 
-	const newFlip = await db.insert(flips).values({
-		outputItemId: body.outputItemId,
-		outputItemName: body.outputItemName || body.outputItemId,
-		inputItems: body.inputItems || [],
-		outputQuantity: body.outputQuantity ?? 1,
-		isActive: body.isActive ?? true,
-		notes: body.notes || null
-	}).returning();
+	const newFlip = await db
+		.insert(flips)
+		.values({
+			outputItemId: body.outputItemId,
+			outputItemName: body.outputItemName || body.outputItemId,
+			inputItems: body.inputItems || [],
+			outputQuantity: body.outputQuantity ?? 1,
+			category: body.category,
+			isActive: body.isActive ?? true,
+			notes: body.notes || null
+		})
+		.returning();
 
 	return json(newFlip[0], { status: 201 });
 };
@@ -78,12 +82,14 @@ export const PUT = async ({ request }) => {
 		return json({ error: 'Flip ID is required' }, { status: 400 });
 	}
 
-	const updatedFlip = await db.update(flips)
+	const updatedFlip = await db
+		.update(flips)
 		.set({
 			outputItemId: body.outputItemId,
 			outputItemName: body.outputItemName,
 			inputItems: body.inputItems,
 			outputQuantity: body.outputQuantity ?? 1,
+			category: body.category
 		})
 		.where(eq(flips.id, body.id))
 		.returning();
@@ -103,7 +109,10 @@ export const DELETE = async ({ url }) => {
 		return json({ error: 'Flip ID is required' }, { status: 400 });
 	}
 
-	const deletedFlip = await db.delete(flips).where(eq(flips.id, parseInt(id))).returning();
+	const deletedFlip = await db
+		.delete(flips)
+		.where(eq(flips.id, parseInt(id)))
+		.returning();
 
 	if (deletedFlip.length === 0) {
 		return json({ error: 'Flip not found' }, { status: 404 });

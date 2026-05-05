@@ -2,9 +2,7 @@ import type { BazaarResponse, Prices } from '$lib/types/api';
 import { instaFetch } from '$lib/utils';
 
 export async function getBazaarPrices() {
-	const bazaarResponse: BazaarResponse = await instaFetch(
-		'https://api.hypixel.net/v2/skyblock/bazaar'
-	);
+	const bazaarResponse: BazaarResponse = await instaFetch('https://api.hypixel.net/v2/skyblock/bazaar');
 
 	const priceMap = new Map<string, Prices>();
 

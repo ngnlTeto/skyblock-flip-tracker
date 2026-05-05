@@ -40,113 +40,113 @@ export interface BazaarResponse {
  * Represents a single bid placed on an auction.
  */
 interface Bid {
-  /** The UUID of the auction this bid belongs to */
-  auction_id: string;
+	/** The UUID of the auction this bid belongs to */
+	auction_id: string;
 
-  /** The UUID of the player who placed the bid */
-  bidder: string;
+	/** The UUID of the player who placed the bid */
+	bidder: string;
 
-  /** The profile ID of the bidder */
-  profile_id: string;
+	/** The profile ID of the bidder */
+	profile_id: string;
 
-  /** The amount of coins bid */
-  amount: number;
+	/** The amount of coins bid */
+	amount: number;
 
-  /** Unix timestamp (ms) of when the bid was placed */
-  timestamp: number;
+	/** Unix timestamp (ms) of when the bid was placed */
+	timestamp: number;
 }
 
 /**
  * Represents a single auction listing on the Hypixel Skyblock Auction House.
  */
 interface Auction {
-  /** Unique identifier for the auction */
-  uuid: string;
+	/** Unique identifier for the auction */
+	uuid: string;
 
-  /** UUID of the player who created the auction */
-  auctioneer: string;
+	/** UUID of the player who created the auction */
+	auctioneer: string;
 
-  /** Profile ID of the auctioneer */
-  profile_id: string;
+	/** Profile ID of the auctioneer */
+	profile_id: string;
 
-  /** List of co-op member UUIDs associated with the auction */
-  coop: string[];
+	/** List of co-op member UUIDs associated with the auction */
+	coop: string[];
 
-  /** Unix timestamp (ms) of when the auction started */
-  start: number;
+	/** Unix timestamp (ms) of when the auction started */
+	start: number;
 
-  /** Unix timestamp (ms) of when the auction ends */
-  end: number;
+	/** Unix timestamp (ms) of when the auction ends */
+	end: number;
 
-  /** Display name of the item being auctioned */
-  item_name: string;
+	/** Display name of the item being auctioned */
+	item_name: string;
 
-  /** Full lore/description of the item (may contain color codes) */
-  item_lore: string;
+	/** Full lore/description of the item (may contain color codes) */
+	item_lore: string;
 
-  /** Extra searchable metadata about the item */
-  extra: string;
+	/** Extra searchable metadata about the item */
+	extra: string;
 
-  /** List of category tags associated with the item */
-  categories: string[];
+	/** List of category tags associated with the item */
+	categories: string[];
 
-  /** Primary category of the item (e.g. "weapon", "armor") */
-  category: string;
+	/** Primary category of the item (e.g. "weapon", "armor") */
+	category: string;
 
-  /** Rarity tier of the item (e.g. "COMMON", "RARE", "LEGENDARY") */
-  tier: string;
+	/** Rarity tier of the item (e.g. "COMMON", "RARE", "LEGENDARY") */
+	tier: string;
 
-  /** The minimum starting bid in coins */
-  starting_bid: number;
+	/** The minimum starting bid in coins */
+	starting_bid: number;
 
-  /** Base64-encoded NBT item data */
-  item_bytes: string;
+	/** Base64-encoded NBT item data */
+	item_bytes: string;
 
-  /** Whether the auction has been claimed by the seller */
-  claimed: boolean;
+	/** Whether the auction has been claimed by the seller */
+	claimed: boolean;
 
-  /** List of UUIDs of players who have claimed bids */
-  claimed_bidders: string[];
+	/** List of UUIDs of players who have claimed bids */
+	claimed_bidders: string[];
 
-  /** The current highest bid amount in coins */
-  highest_bid_amount: number;
+	/** The current highest bid amount in coins */
+	highest_bid_amount: number;
 
-  /** Unix timestamp (ms) of when the auction data was last updated */
-  last_updated: number;
+	/** Unix timestamp (ms) of when the auction data was last updated */
+	last_updated: number;
 
-  /** Whether this is a Buy It Now (BIN) auction */
-  bin: boolean;
+	/** Whether this is a Buy It Now (BIN) auction */
+	bin: boolean;
 
-  /** List of bids placed on this auction */
-  bids: Bid[];
+	/** List of bids placed on this auction */
+	bids: Bid[];
 
-  /**
-   * Optional unique identifier for the specific item instance.
-   * Only present on some auctions (BIN listings).
-   */
-  item_uuid?: string;
+	/**
+	 * Optional unique identifier for the specific item instance.
+	 * Only present on some auctions (BIN listings).
+	 */
+	item_uuid?: string;
 }
 
 /**
  * Top-level response from the Hypixel Skyblock Auctions API.
  */
 export interface AuctionsResponse {
-  /** Whether the API request was successful */
-  success: boolean;
+	/** Whether the API request was successful */
+	success: boolean;
 
-  /** The current page number (zero-indexed) */
-  page: number;
+	/** The current page number (zero-indexed) */
+	page: number;
 
-  /** Total number of pages available */
-  totalPages: number;
+	/** Total number of pages available */
+	totalPages: number;
 
-  /** Total number of active auctions across all pages */
-  totalAuctions: number;
+	/** Total number of active auctions across all pages */
+	totalAuctions: number;
 
-  /** Unix timestamp (ms) of when the auction data was last updated */
-  lastUpdated: number;
+	/** Unix timestamp (ms) of when the auction data was last updated */
+	lastUpdated: number;
 
-  /** List of auctions on the current page */
-  auctions: Auction[];
+	/** List of auctions on the current page */
+	auctions: Auction[];
 }
 //#endregion

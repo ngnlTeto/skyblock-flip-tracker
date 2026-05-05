@@ -17,7 +17,7 @@ export const load = (async () => {
 	}
 
 	// Calculate costs and profits for each flip
-	const flipsWithCalculations = allFlips.map(flip => {
+	const flipsWithCalculations = allFlips.map((flip) => {
 		// Calculate input cost (buy prices)
 		let totalInputCost = 0;
 		for (const input of flip.inputItems) {
@@ -44,18 +44,21 @@ export const load = (async () => {
 
 	// Calculate statistics
 	const totalFlips = allFlips.length;
-	const activeFlips = allFlips.filter(f => f.isActive).length;
+	const activeFlips = allFlips.filter((f) => f.isActive).length;
 	const totalPotentialProfit = flipsWithCalculations.reduce((sum, flip) => {
 		return sum + (flip.profit || 0);
 	}, 0);
 	const avgProfit = totalFlips > 0 ? totalPotentialProfit / totalFlips : 0;
 
 	// Find best flip
-	const bestFlip = flipsWithCalculations.reduce((best, flip) => {
-		const profit = flip.profit ?? 0;
-		const bestProfit = best ? (best.profit ?? 0) : 0;
-		return profit > bestProfit ? flip : best;
-	}, null as typeof flipsWithCalculations[0] | null);
+	const bestFlip = flipsWithCalculations.reduce(
+		(best, flip) => {
+			const profit = flip.profit ?? 0;
+			const bestProfit = best ? (best.profit ?? 0) : 0;
+			return profit > bestProfit ? flip : best;
+		},
+		null as (typeof flipsWithCalculations)[0] | null
+	);
 
 	return {
 		flips: flipsWithCalculations,

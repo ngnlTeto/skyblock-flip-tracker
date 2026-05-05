@@ -24,6 +24,7 @@
 		outputItemName: '',
 		inputItems: [] as { itemId: string; itemName: string; quantity: number }[],
 		outputQuantity: 1,
+		category: '',
 		notes: ''
 	});
 
@@ -56,6 +57,7 @@
 			outputItemName: '',
 			inputItems: [],
 			outputQuantity: 1,
+			category: '',
 			notes: ''
 		};
 		editingFlip = null;
@@ -69,6 +71,7 @@
 			outputItemName: flip.outputItemName || '',
 			inputItems: [...flip.inputItems],
 			outputQuantity: flip.outputQuantity ?? 1,
+			category: flip.category || '',
 			notes: flip.notes || ''
 		};
 		editingFlip = flip;
@@ -236,6 +239,7 @@
 				<Table.Header>
 					<Table.Row>
 						<Table.Head>Output Item</Table.Head>
+						<Table.Head>Category</Table.Head>
 						<Table.Head>Input Items</Table.Head>
 						<Table.Head class="text-right">Input Cost</Table.Head>
 						<Table.Head class="text-right">Output Value</Table.Head>
@@ -253,6 +257,7 @@
 								{/if}
 								<div class="text-xs text-muted-foreground">×{flip.outputQuantity}</div>
 							</Table.Cell>
+							<Table.Cell>{flip.category || '-'}</Table.Cell>
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
 									{#each flip.inputItems as input (input.itemId)}
@@ -263,7 +268,10 @@
 													src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{input.itemId}.png"
 													alt={input.itemId}
 													class="h-4 w-4 rounded"
-													onerror={(e) => (e.currentTarget.style.display = 'none')}
+													onerror={(e) => {
+														const img = e.currentTarget as HTMLImageElement;
+														img.style.display = 'none';
+													}}
 												/>
 												{input.itemId}
 												<span class="text-muted-foreground">×{input.quantity}</span>
@@ -295,7 +303,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={8} class="text-center py-8 text-muted-foreground">
+							<Table.Cell colspan={7} class="text-center py-8 text-muted-foreground">
 								No craft flips found. Add your first craft flip to get started!
 							</Table.Cell>
 						</Table.Row>
@@ -365,6 +373,21 @@
 						<p class="text-sm text-muted-foreground">No ingredients added. Click "Add Ingredient" to add input items.</p>
 					{/if}
 				</div>
+			</div>
+
+			<!-- Category -->
+			<div class="grid gap-2">
+				<label for="category" class="text-sm font-medium">Category</label>
+				<select
+					id="category"
+					bind:value={formData.category}
+					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				>
+					<option value="">Select a category...</option>
+					<option value="Auction flip">Auction flip</option>
+					<option value="Forge flip">Forge flip</option>
+					<option value="Bazaar flip">Bazaar flip</option>
+				</select>
 			</div>
 
 			<!-- Notes -->

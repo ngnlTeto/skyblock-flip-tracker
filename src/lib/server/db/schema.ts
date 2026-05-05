@@ -18,6 +18,7 @@ export const flips = pgTable('flips', {
 	inputItems: jsonb('input_items').notNull().default([]).$type<{ itemId: string; itemName: string; quantity: number }[]>(),
 	// Quantity of output items produced
 	outputQuantity: integer('output_quantity').default(1),
+	category: varchar('category', { length: 50 }),
 	isActive: boolean('is_active').default(true),
 	notes: text('notes'),
 	createdAt: timestamp('created_at').defaultNow(),

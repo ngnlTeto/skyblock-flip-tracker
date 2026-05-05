@@ -1,0 +1,1 @@
+ALTER TABLE "flips" ADD COLUMN "category" varchar(50);
