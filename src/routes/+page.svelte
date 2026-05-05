@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus, Pencil, Trash2, Search, X, RefreshCw, Gavel, Hammer, ShoppingCart, Wrench } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Search, X, RefreshCw, Gavel, Hammer, ShoppingCart } from 'lucide-svelte';
 	import ItemSearch from '$lib/components/item-search.svelte';
 
 	let { data }: PageProps = $props();
@@ -59,8 +59,6 @@
 				return { icon: Hammer, color: 'text-orange-500' };
 			case 'Bazaar flip':
 				return { icon: ShoppingCart, color: 'text-blue-500' };
-			case 'Crafting flip':
-				return { icon: Wrench, color: 'text-green-500' };
 			default:
 				return { icon: null, color: 'text-muted-foreground' };
 		}
@@ -410,7 +408,6 @@
 					<option value="Auction flip">🏛️ Auction flip</option>
 					<option value="Forge flip">🔨 Forge flip</option>
 					<option value="Bazaar flip">🛒 Bazaar flip</option>
-					<option value="Crafting flip">🔧 Crafting flip</option>
 				</select>
 			</div>
 

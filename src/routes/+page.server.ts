@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { flips, prices } from '$lib/server/db/schema';
-import { desc, inArray } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 
 export const load = (async () => {
 	// Fetch all flips ordered by creation date
