@@ -50,8 +50,9 @@ export const load = (async () => {
 	}, 0);
 	const avgProfit = totalFlips > 0 ? totalPotentialProfit / totalFlips : 0;
 
-	// Find best flip
-	const bestFlip = flipsWithCalculations.reduce(
+	// Find best flip excluding forge flips
+	const nonForgeFlips = flipsWithCalculations.filter((flip) => flip.category !== 'Forge flip');
+	const bestFlip = nonForgeFlips.reduce(
 		(best, flip) => {
 			const profit = flip.profit ?? 0;
 			const bestProfit = best ? (best.profit ?? 0) : 0;

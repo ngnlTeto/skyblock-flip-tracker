@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus, Pencil, Trash2, Search, X, RefreshCw } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Search, X, RefreshCw, Gavel, Hammer, ShoppingCart, Wrench } from 'lucide-svelte';
 	import ItemSearch from '$lib/components/item-search.svelte';
 
 	let { data }: PageProps = $props();
@@ -48,6 +48,22 @@
 	// Get price info for an item
 	function getPrice(itemId: string) {
 		return prices.find((p) => p.itemId === itemId);
+	}
+
+	// Get category icon and color
+	function getCategoryInfo(category: string) {
+		switch (category) {
+			case 'Auction flip':
+				return { icon: Gavel, color: 'text-purple-500' };
+			case 'Forge flip':
+				return { icon: Hammer, color: 'text-orange-500' };
+			case 'Bazaar flip':
+				return { icon: ShoppingCart, color: 'text-blue-500' };
+			case 'Crafting flip':
+				return { icon: Wrench, color: 'text-green-500' };
+			default:
+				return { icon: null, color: 'text-muted-foreground' };
+		}
 	}
 
 	// Open add dialog
@@ -257,7 +273,14 @@
 								{/if}
 								<div class="text-xs text-muted-foreground">×{flip.outputQuantity}</div>
 							</Table.Cell>
-							<Table.Cell>{flip.category || '-'}</Table.Cell>
+							<Table.Cell>
+								{#if flip.category}
+									{@const categoryInfo = getCategoryInfo(flip.category)}
+									<categoryInfo.icon class="h-5 w-5 {categoryInfo.color}" />
+								{:else}
+									<span class="text-muted-foreground">-</span>
+								{/if}
+							</Table.Cell>
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
 									{#each flip.inputItems as input (input.itemId)}
@@ -384,9 +407,10 @@
 					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					<option value="">Select a category...</option>
-					<option value="Auction flip">Auction flip</option>
-					<option value="Forge flip">Forge flip</option>
-					<option value="Bazaar flip">Bazaar flip</option>
+					<option value="Auction flip">🏛️ Auction flip</option>
+					<option value="Forge flip">🔨 Forge flip</option>
+					<option value="Bazaar flip">🛒 Bazaar flip</option>
+					<option value="Crafting flip">🔧 Crafting flip</option>
 				</select>
 			</div>
 
