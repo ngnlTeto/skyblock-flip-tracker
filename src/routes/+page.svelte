@@ -5,8 +5,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus, Pencil, Trash2, Search, X, RefreshCw, Gavel, Hammer, ShoppingCart } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Search, X, RefreshCw, Gavel, Hammer, ShoppingCart, Sparkles } from 'lucide-svelte';
 	import ItemSearch from '$lib/components/item-search.svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 
@@ -59,6 +60,8 @@
 				return { icon: Hammer, color: 'text-orange-500' };
 			case 'Bazaar flip':
 				return { icon: ShoppingCart, color: 'text-blue-500' };
+			case 'Craft flip':
+				return { icon: Sparkles, color: 'text-emerald-500' };
 			default:
 				return { icon: null, color: 'text-muted-foreground' };
 		}
@@ -128,7 +131,6 @@
 		});
 
 		if (res.ok) {
-			// Fetch the updated flip with calculations
 			const flipRes = await fetch('/api/flips');
 			const updatedFlips = await flipRes.json();
 			flips = updatedFlips;
@@ -151,8 +153,7 @@
 		isReloading = true;
 		try {
 			await fetch('/api/reload-prices', { method: 'GET' });
-			// Refresh the page to get updated prices
-			window.location.reload();
+			invalidateAll();
 		} finally {
 			isReloading = false;
 		}
@@ -408,6 +409,7 @@
 					<option value="Auction flip">🏛️ Auction flip</option>
 					<option value="Forge flip">🔨 Forge flip</option>
 					<option value="Bazaar flip">🛒 Bazaar flip</option>
+					<option value="Craft flip">✨ Craft flip</option>
 				</select>
 			</div>
 
