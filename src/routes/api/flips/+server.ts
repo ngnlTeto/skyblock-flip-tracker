@@ -20,9 +20,7 @@ export const GET = async () => {
 
 	// Get all unique item IDs to fetch prices
 	const outputItemIds = allFlips.map((f) => f.outputItemId);
-	const inputItemIds = [
-		...new Set(allFlips.flatMap((f) => f.inputItems.map((i: { itemId: string; itemName: string; quantity: number }) => i.itemId)))
-	];
+	const inputItemIds = [...new Set(allFlips.flatMap((f) => f.inputItems.map((i) => i.itemId)))];
 	const allItemIds = [...new Set([...outputItemIds, ...inputItemIds])];
 
 	const priceMap = await getPricesForItems(allItemIds);

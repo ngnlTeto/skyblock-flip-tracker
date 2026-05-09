@@ -1,5 +1,7 @@
 import type { AuctionsResponse, Prices } from '$lib/types/api';
 import { instaFetch } from '$lib/utils';
+import { gunzipSync } from 'zlib';
+import { parse } from 'prismarine-nbt';
 
 export async function getAuctionPrices(): Promise<Map<string, Prices>> {
 	const pricesMap = new Map<string, Prices>();
@@ -42,4 +44,10 @@ export async function getAuctionPrices(): Promise<Map<string, Prices>> {
 		}
 	}
 	return pricesMap;
+}
+
+async function extractItemBytes(itemBytes: string): Promise<any> {
+	const buffer = Buffer.from(itemBytes, 'base64');
+	const decompressed = gunzipSync(buffer);
+	return await parse(decompressed);
 }
