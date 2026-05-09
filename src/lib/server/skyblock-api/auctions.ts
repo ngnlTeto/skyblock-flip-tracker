@@ -1,13 +1,15 @@
-import type { AuctionsResponse, Prices } from '$lib/types/api';
+import type { AuctionsResponse } from '$lib/types/api';
 import { instaFetch } from '$lib/utils';
 import { gunzipSync } from 'zlib';
 import { parse } from 'prismarine-nbt';
+import type { ItemPrice } from '$lib/types/db';
+import { getItems } from './items';
 
-export async function getAuctionPrices(): Promise<Map<string, Prices>> {
-	const pricesMap = new Map<string, Prices>();
-
-	// Fetch first page to get totalPages
+export async function getAuctionPrices(): Promise<ItemPrice[]> {
+	const pricesList: ItemPrice[] = [];
 	const firstResponse: AuctionsResponse = await instaFetch('https://api.hypixel.net/v2/skyblock/auctions?page=0');
+
+	const itemMap = await getItems();
 
 	if (!firstResponse.success) {
 		throw new Error('Failed to fetch auction data');
@@ -34,16 +36,24 @@ export async function getAuctionPrices(): Promise<Map<string, Prices>> {
 			const price = auction.starting_bid;
 
 			// Only keep the lowest BIN price for each item
-			const existing = pricesMap.get(itemName);
+			const existing = pricesList.find((p) => p.itemName === itemName);
 			if (!existing || price < existing.buyPrice) {
-				pricesMap.set(itemName, {
+				const itemId = await extractItemId(auction.item_bytes);
+				pricesList.push({
+					itemId,
+					itemName: itemMap.get(itemId)!,
 					buyPrice: price,
 					sellPrice: price
 				});
 			}
 		}
 	}
-	return pricesMap;
+	return pricesList;
+}
+
+async function extractItemId(itemBytes: string): Promise<string> {
+	const nbtData = await extractItemBytes(itemBytes);
+	return nbtData.parsed.value.i.value.value.at(0).tag.value.ExtraAttributes.id.value;
 }
 
 async function extractItemBytes(itemBytes: string): Promise<any> {

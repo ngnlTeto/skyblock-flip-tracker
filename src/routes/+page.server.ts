@@ -1,14 +1,14 @@
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { flips, prices } from '$lib/server/db/schema';
+import { flipsTable, pricesTable } from '$lib/server/db/schema';
 import { desc } from 'drizzle-orm';
 
 export const load = (async () => {
 	// Fetch all flips ordered by creation date
-	const allFlips = await db.select().from(flips).orderBy(desc(flips.createdAt));
+	const allFlips = await db.select().from(flipsTable).orderBy(desc(flipsTable.createdAt));
 
 	// Fetch all prices for reference
-	const allPrices = await db.select().from(prices);
+	const allPrices = await db.select().from(pricesTable);
 
 	// Create price map for quick lookup
 	const priceMap = new Map();

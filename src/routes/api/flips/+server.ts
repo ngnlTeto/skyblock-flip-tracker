@@ -1,12 +1,12 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { flips, prices } from '$lib/server/db/schema';
+import { flipsTable, pricesTable } from '$lib/server/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 
 // Helper to get prices for multiple items
 async function getPricesForItems(itemIds: string[]) {
 	if (itemIds.length === 0) return new Map();
-	const priceData = await db.select().from(prices).where(inArray(prices.itemId, itemIds));
+	const priceData = await db.select().from(pricesTable).where(inArray(pricesTable.itemId, itemIds));
 	const priceMap = new Map();
 	for (const p of priceData) {
 		priceMap.set(p.itemId, p);
@@ -16,7 +16,7 @@ async function getPricesForItems(itemIds: string[]) {
 
 // GET - Fetch all flips with calculated costs/profit
 export const GET = async () => {
-	const allFlips = await db.select().from(flips).orderBy(desc(flips.createdAt));
+	const allFlips = await db.select().from(flipsTable).orderBy(desc(flipsTable.createdAt));
 
 	// Get all unique item IDs to fetch prices
 	const outputItemIds = allFlips.map((f) => f.outputItemId);
@@ -59,7 +59,7 @@ export const POST = async ({ request }) => {
 	const body = await request.json();
 
 	const newFlip = await db
-		.insert(flips)
+		.insert(flipsTable)
 		.values({
 			outputItemId: body.outputItemId,
 			outputItemName: body.outputItemName || body.outputItemId,
@@ -83,7 +83,7 @@ export const PUT = async ({ request }) => {
 	}
 
 	const updatedFlip = await db
-		.update(flips)
+		.update(flipsTable)
 		.set({
 			outputItemId: body.outputItemId,
 			outputItemName: body.outputItemName,
@@ -91,7 +91,7 @@ export const PUT = async ({ request }) => {
 			outputQuantity: body.outputQuantity ?? 1,
 			category: body.category
 		})
-		.where(eq(flips.id, body.id))
+		.where(eq(flipsTable.id, body.id))
 		.returning();
 
 	if (updatedFlip.length === 0) {
@@ -110,8 +110,8 @@ export const DELETE = async ({ url }) => {
 	}
 
 	const deletedFlip = await db
-		.delete(flips)
-		.where(eq(flips.id, parseInt(id)))
+		.delete(flipsTable)
+		.where(eq(flipsTable.id, parseInt(id)))
 		.returning();
 
 	if (deletedFlip.length === 0) {
