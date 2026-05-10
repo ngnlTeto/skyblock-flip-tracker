@@ -38,7 +38,7 @@
 				quantity: i.quantity
 			}));
 
-			const totalInputPrice = sum(inputItems.map((i) => i.buyPrice ?? 0 * i.quantity));
+			const totalInputPrice = sum(inputItems.map((i) => (i.buyPrice ?? 0) * i.quantity));
 
 			return {
 				id: flip.id,
@@ -47,10 +47,7 @@
 				category: flip.category,
 				isActive: flip.isActive,
 				notes: flip.notes,
-				profit:
-					outputItem.sellPrice !== null && outputItem.sellPrice !== undefined
-						? outputItem.sellPrice - totalInputPrice
-						: null,
+				profit: outputItem.sellPrice && totalInputPrice ? outputItem.sellPrice - totalInputPrice : null,
 				totalInputPrice
 			};
 		})
