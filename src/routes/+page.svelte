@@ -111,9 +111,6 @@
 		showDialog = false;
 	}
 
-	$inspect(flips);
-	$inspect(flipPrices);
-
 	async function deleteFlip(id: string) {
 		if (!confirm('Are you sure you want to delete this flip?')) return;
 
