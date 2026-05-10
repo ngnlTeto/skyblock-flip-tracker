@@ -1,154 +1,147 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import { onMount } from 'svelte';
+	import { Plus, Pencil, Trash2, Search, RefreshCw, Gavel, Hammer, ShoppingCart, Sparkles } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus, Pencil, Trash2, Search, X, RefreshCw, Gavel, Hammer, ShoppingCart, Sparkles } from 'lucide-svelte';
-	import ItemSearch from '$lib/components/item-search.svelte';
+	import EditFlipDialog from '$lib/components/edit-flip-dialog.svelte';
+	import type { ItemPrice } from '$lib/types/db';
+	import { type Flip, FlipCategory } from '$lib/types/flip';
 	import { invalidateAll } from '$app/navigation';
+	import { betterMax, sum } from '$lib/utils';
 
 	let { data }: PageProps = $props();
 
-	// Local state for flips (synced from server data)
-	let flips = $derived(data.flips || []);
-	let prices = $derived(data.prices || []);
-	let searchQuery = $state('');
-	let showAddDialog = $state(false);
-	let editingFlip = $state<(typeof flips)[0] | null>(null);
-	let isReloading = $state(false);
+	const itemMap: Map<string, ItemPrice> = $derived(new Map(data.items.map((i) => [i.itemId, i])));
 
-	// Form state for craft flip
-	let formData = $state({
-		outputItemId: '',
-		outputItemName: '',
-		inputItems: [] as { itemId: string; itemName: string; quantity: number }[],
-		outputQuantity: 1,
-		category: '',
-		notes: ''
+	let flips = $state<Flip[]>([]);
+
+	onMount(() => {
+		flips = JSON.parse(localStorage.getItem('flips') ?? '[]');
 	});
 
+	$effect(() => {
+		localStorage.setItem('flips', JSON.stringify(flips));
+	});
+
+	const flipPrices = $derived(
+		flips.map((flip) => {
+			const outputItem = {
+				...itemMap.get(flip.outputItem.itemId!)!,
+				quantity: flip.outputItem.quantity
+			};
+			const inputItems = flip.inputItems.map((i) => ({
+				...itemMap.get(i.itemId!)!,
+				quantity: flip.outputItem.quantity
+			}));
+
+			const totalInputPrice = sum(inputItems.map((i) => i.buyPrice ?? 0));
+
+			return {
+				id: flip.id,
+				outputItem,
+				inputItems,
+				category: flip.category,
+				isActive: flip.isActive,
+				notes: flip.notes,
+				profit:
+					outputItem.sellPrice !== null && outputItem.sellPrice !== undefined
+						? outputItem.sellPrice - sum(inputItems.map((i) => i.buyPrice ?? 0))
+						: null,
+				totalInputPrice
+			};
+		})
+	);
+	const activeFlipPrices = $derived(flipPrices.filter((f) => f.isActive));
+
+	let searchQuery = $state('');
+	let isReloading = $state(false);
+
+	// Dialog state
+	let showDialog = $state(false);
+	let editingFlip = $state<Flip | null>(null);
+	let addNewFlipDialog = $state(false);
+
 	// Filtered flips based on search
-	let filteredFlips = $derived(
-		flips.filter(
+	const filteredFlips = $derived(
+		flipPrices.filter(
 			(flip) =>
-				flip.outputItemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				(flip.outputItemName && flip.outputItemName.toLowerCase().includes(searchQuery.toLowerCase()))
+				flip.outputItem.itemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				flip.outputItem.itemName.toLowerCase().includes(searchQuery.toLowerCase())
 		)
 	);
 
+	function getNewFlip(): Flip {
+		return {
+			id: crypto.randomUUID(),
+			category: undefined,
+			outputItem: {
+				itemId: undefined,
+				quantity: 1
+			},
+			inputItems: [],
+			isActive: true,
+			notes: ''
+		};
+	}
+
 	// Format currency
-	function formatCoins(amount: number) {
+	function formatCoins(amount: number | null) {
+		if (amount === null) return 'N/A';
 		return new Intl.NumberFormat('en-US', {
 			minimumFractionDigits: 0,
 			maximumFractionDigits: 0
 		}).format(amount);
 	}
 
-	// Get price info for an item
-	function getPrice(itemId: string) {
-		return prices.find((p) => p.itemId === itemId);
-	}
-
 	// Get category icon and color
-	function getCategoryInfo(category: string) {
+	function getCategoryInfo(category: FlipCategory) {
 		switch (category) {
-			case 'Auction flip':
+			case FlipCategory.AUCTION_FLIP:
 				return { icon: Gavel, color: 'text-purple-500' };
-			case 'Forge flip':
+			case FlipCategory.FORGE_FLIP:
 				return { icon: Hammer, color: 'text-orange-500' };
-			case 'Bazaar flip':
+			case FlipCategory.BAZAAR_FLIP:
 				return { icon: ShoppingCart, color: 'text-blue-500' };
-			case 'Craft flip':
+			case FlipCategory.CRAFT_FLIP:
 				return { icon: Sparkles, color: 'text-emerald-500' };
 			default:
 				return { icon: null, color: 'text-muted-foreground' };
 		}
 	}
 
-	// Open add dialog
-	function openAddDialog() {
-		formData = {
-			outputItemId: '',
-			outputItemName: '',
-			inputItems: [],
-			outputQuantity: 1,
-			category: '',
-			notes: ''
-		};
-		editingFlip = null;
-		showAddDialog = true;
+	function getProfitColor(profit: number | null) {
+		if (profit === null) return 'text-muted-foreground';
+		return profit >= 0 ? 'text-green-500' : 'text-red-500';
 	}
 
-	// Open edit dialog
-	function openEditDialog(flip: (typeof flips)[0]) {
-		formData = {
-			outputItemId: flip.outputItemId,
-			outputItemName: flip.outputItemName || '',
-			inputItems: [...flip.inputItems],
-			outputQuantity: flip.outputQuantity ?? 1,
-			category: flip.category || '',
-			notes: flip.notes || ''
-		};
+	function openDialog(flip: Flip, addNewFlip = false) {
 		editingFlip = flip;
-		showAddDialog = true;
-	}
-
-	// Add input item to form
-	function addInputItem() {
-		formData.inputItems = [...formData.inputItems, { itemId: '', itemName: '', quantity: 1 }];
-	}
-
-	// Remove input item from form
-	function removeInputItem(index: number) {
-		formData.inputItems = formData.inputItems.filter((_, i) => i !== index);
-	}
-
-	// Update input item when selected from dropdown
-	function onInputItemSelect(index: number, itemId: string) {
-		const price = getPrice(itemId);
-		formData.inputItems[index] = {
-			itemId,
-			itemName: price?.itemId ?? itemId,
-			quantity: formData.inputItems[index].quantity
-		};
+		showDialog = false; // Reset dialog state to trigger re-render
+		showDialog = true;
+		addNewFlipDialog = addNewFlip;
 	}
 
 	// Save flip (create or update)
-	async function saveFlip() {
-		const method = editingFlip ? 'PUT' : 'POST';
-		const body = {
-			...formData,
-			id: editingFlip?.id,
-			isActive: true
-		};
+	async function saveFlip(flip: Flip) {
+		const index = flips.findIndex((f) => f.id === flip.id);
 
-		const res = await fetch('/api/flips', {
-			method,
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(body)
-		});
-
-		if (res.ok) {
-			const flipRes = await fetch('/api/flips');
-			const updatedFlips = await flipRes.json();
-			flips = updatedFlips;
-			showAddDialog = false;
+		if (index === -1) {
+			flips = [...flips, flip];
+		} else {
+			flips[index] = flip;
 		}
 	}
 
-	// Delete flip
-	async function deleteFlip(id: number) {
+	async function deleteFlip(id: string) {
 		if (!confirm('Are you sure you want to delete this flip?')) return;
 
-		const res = await fetch(`/api/flips?id=${id}`, { method: 'DELETE' });
-		if (res.ok) {
-			flips = flips.filter((f) => f.id !== id);
-		}
+		const index = flips.findIndex((f) => f.id === id);
+		flips.splice(index, 1);
 	}
 
-	// Reload prices
 	async function reloadPrices() {
 		isReloading = true;
 		try {
@@ -159,8 +152,21 @@
 		}
 	}
 
-	// Stats from server data
-	let stats = $derived(data.stats);
+	const stats = $derived({
+		flipCount: flipPrices.length,
+		activeFlipCount: activeFlipPrices.length,
+		bestFlip: betterMax(activeFlipPrices, (f) => f.profit),
+		bestInstantFlip: betterMax(
+			activeFlipPrices.filter((f) =>
+				[FlipCategory.AUCTION_FLIP, FlipCategory.BAZAAR_FLIP, FlipCategory.CRAFT_FLIP].includes(f.category!)
+			),
+			(f) => f.profit
+		),
+		bestForgeFlip: betterMax(
+			activeFlipPrices.filter((f) => f.category === FlipCategory.FORGE_FLIP),
+			(f) => f.profit
+		)
+	});
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -174,7 +180,7 @@
 			<Button variant="outline" size="icon" onclick={reloadPrices} disabled={isReloading} title="Reload Prices">
 				<RefreshCw class="h-4 w-4 {isReloading ? 'animate-spin' : ''}" />
 			</Button>
-			<Button onclick={openAddDialog}>
+			<Button onclick={() => openDialog(getNewFlip(), true)}>
 				<Plus class="mr-2 h-4 w-4" />
 				Add Craft Flip
 			</Button>
@@ -186,37 +192,11 @@
 		<Card.Root>
 			<Card.Header>
 				<Card.Title class="text-sm font-medium">Total Flips</Card.Title>
-				<Card.Description>All tracked craft flips</Card.Description>
+				<Card.Description>All tracked flips</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				<div class="text-2xl font-bold">{stats?.totalFlips || 0}</div>
-				<p class="text-xs text-muted-foreground">{stats?.activeFlips || 0} active</p>
-			</Card.Content>
-		</Card.Root>
-
-		<Card.Root>
-			<Card.Header>
-				<Card.Title class="text-sm font-medium">Total Potential Profit</Card.Title>
-				<Card.Description>All active flips</Card.Description>
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold {(stats?.totalPotentialProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
-					{formatCoins(stats?.totalPotentialProfit || 0)}
-				</div>
-				<p class="text-xs text-muted-foreground">Combined profit potential</p>
-			</Card.Content>
-		</Card.Root>
-
-		<Card.Root>
-			<Card.Header>
-				<Card.Title class="text-sm font-medium">Average Profit</Card.Title>
-				<Card.Description>Per flip</Card.Description>
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold {(stats?.avgProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
-					{formatCoins(stats?.avgProfit || 0)}
-				</div>
-				<p class="text-xs text-muted-foreground">Mean profit per flip</p>
+				<div class="text-2xl font-bold">{stats.flipCount}</div>
+				<p class="text-xs text-muted-foreground">{stats.activeFlipCount} active</p>
 			</Card.Content>
 		</Card.Root>
 
@@ -226,11 +206,47 @@
 				<Card.Description>Highest potential profit</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				{#if stats?.bestFlip}
-					<div class="text-2xl font-bold text-green-500">
+				{#if stats.bestFlip}
+					<div class="text-2xl font-bold {getProfitColor(stats.bestFlip.profit)}">
 						{formatCoins(stats.bestFlip.profit || 0)}
 					</div>
-					<p class="text-xs text-muted-foreground">{stats.bestFlip.outputItemId}</p>
+					<p class="text-xs text-muted-foreground">{stats.bestFlip.outputItem.itemName}</p>
+				{:else}
+					<div class="text-2xl font-bold">-</div>
+					<p class="text-xs text-muted-foreground">No flips yet</p>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
+			<Card.Header>
+				<Card.Title class="text-sm font-medium">Best Instant Flip</Card.Title>
+				<Card.Description>No forge flips</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				{#if stats.bestInstantFlip}
+					<div class="text-2xl font-bold {getProfitColor(stats.bestInstantFlip.profit)}">
+						{formatCoins(stats.bestInstantFlip.profit)}
+					</div>
+					<p class="text-xs text-muted-foreground">{stats.bestInstantFlip.outputItem.itemName}</p>
+				{:else}
+					<div class="text-2xl font-bold">-</div>
+					<p class="text-xs text-muted-foreground">No flips yet</p>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
+			<Card.Header>
+				<Card.Title class="text-sm font-medium">Best Forge Flip</Card.Title>
+				<Card.Description>Only forge flips</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				{#if stats.bestForgeFlip}
+					<div class="text-2xl font-bold {getProfitColor(stats.bestForgeFlip.profit)}">
+						{formatCoins(stats.bestForgeFlip.profit)}
+					</div>
+					<p class="text-xs text-muted-foreground">{stats.bestForgeFlip.outputItem.itemName}</p>
 				{:else}
 					<div class="text-2xl font-bold">-</div>
 					<p class="text-xs text-muted-foreground">No flips yet</p>
@@ -266,11 +282,9 @@
 					{#each filteredFlips as flip (flip.id)}
 						<Table.Row>
 							<Table.Cell class="font-medium">
-								<div>{flip.outputItemId}</div>
-								{#if flip.outputItemName}
-									<div class="text-xs text-muted-foreground">{flip.outputItemName}</div>
-								{/if}
-								<div class="text-xs text-muted-foreground">×{flip.outputQuantity}</div>
+								<div>{flip.outputItem.itemName}</div>
+								<div class="text-xs text-muted-foreground">{flip.outputItem.itemId}</div>
+								<div class="text-xs text-muted-foreground">×{flip.outputItem.quantity}</div>
 							</Table.Cell>
 							<Table.Cell>
 								{#if flip.category}
@@ -283,38 +297,26 @@
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
 									{#each flip.inputItems as input (input.itemId)}
-										{@const inputPrice = getPrice(input.itemId)}
 										<span class="inline-flex flex-col items-start gap-0.5 rounded bg-secondary px-2 py-0.5 text-xs">
 											<div class="flex items-center gap-1">
-												<img
-													src="https://cdn.jsdelivr.net/gh/NotEnoughUpdates/NotEnoughUpdates@latest/public/images/items/parse_{input.itemId}.png"
-													alt={input.itemId}
-													class="h-4 w-4 rounded"
-													onerror={(e) => {
-														const img = e.currentTarget as HTMLImageElement;
-														img.style.display = 'none';
-													}}
-												/>
-												{input.itemId}
+												{input.itemName}
 												<span class="text-muted-foreground">×{input.quantity}</span>
 											</div>
-											{#if inputPrice?.buyPrice}
-												<div class="text-muted-foreground">
-													{formatCoins(inputPrice.buyPrice * input.quantity)} coins
-												</div>
-											{/if}
+											<div class="text-muted-foreground">
+												{formatCoins(input.buyPrice !== null ? input.buyPrice * input.quantity : null)} coins
+											</div>
 										</span>
 									{/each}
 								</div>
 							</Table.Cell>
-							<Table.Cell class="text-right">{formatCoins(flip.totalInputCost || 0)}</Table.Cell>
-							<Table.Cell class="text-right">{formatCoins(flip.outputRevenue || 0)}</Table.Cell>
-							<Table.Cell class="text-right {(flip.profit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
+							<Table.Cell class="text-right">{formatCoins(flip.totalInputPrice || 0)}</Table.Cell>
+							<Table.Cell class="text-right">{formatCoins(flip.outputItem.sellPrice || 0)}</Table.Cell>
+							<Table.Cell class="text-right {getProfitColor(flip.profit)}">
 								{formatCoins(flip.profit || 0)}
 							</Table.Cell>
 							<Table.Cell class="text-right">
 								<div class="flex items-center justify-end gap-2">
-									<Button variant="ghost" size="icon" onclick={() => openEditDialog(flip)}>
+									<Button variant="ghost" size="icon" onclick={() => openDialog(flip)}>
 										<Pencil class="h-4 w-4" />
 									</Button>
 									<Button variant="ghost" size="icon" onclick={() => deleteFlip(flip.id)}>
@@ -336,93 +338,10 @@
 	</Card.Root>
 </div>
 
-<!-- Add/Edit Dialog -->
-<Dialog.Root bind:open={showAddDialog}>
-	<Dialog.Content class="sm:max-w-150">
-		<Dialog.Header>
-			<Dialog.Title>{editingFlip ? 'Edit Craft Flip' : 'Add New Craft Flip'}</Dialog.Title>
-			<Dialog.Description>
-				{editingFlip
-					? 'Update the craft flip details below.'
-					: 'Add a new craft flip. Select output item and input ingredients from your prices table.'}
-			</Dialog.Description>
-		</Dialog.Header>
-		<div class="grid max-h-[60vh] gap-4 overflow-y-auto py-4">
-			<!-- Output Item -->
-			<div class="grid gap-2">
-				<label for="outputItem" class="text-sm font-medium">Output Item (Result)</label>
-				<ItemSearch
-					items={prices}
-					value={formData.outputItemId}
-					placeholder="Search output item..."
-					onchange={(itemId) => {
-						formData.outputItemId = itemId;
-						formData.outputItemName = itemId;
-					}}
-				/>
-			</div>
-
-			<!-- Output Quantity -->
-			<div class="grid gap-2">
-				<label for="outputQuantity" class="text-sm font-medium">Output Quantity</label>
-				<Input id="outputQuantity" type="number" min="1" bind:value={formData.outputQuantity} />
-			</div>
-
-			<!-- Input Items -->
-			<div class="grid gap-2">
-				<div class="flex items-center justify-between">
-					<label for="input-items" class="text-sm font-medium">Input Items (Ingredients)</label>
-					<Button variant="outline" size="sm" onclick={addInputItem}>
-						<Plus class="mr-1 h-4 w-4" /> Add Ingredient
-					</Button>
-				</div>
-				<div class="space-y-2">
-					{#each formData.inputItems as input, index (input.itemId)}
-						<div class="flex items-center gap-2">
-							<ItemSearch
-								items={prices}
-								value={input.itemId}
-								placeholder="Search ingredient..."
-								onchange={(itemId) => onInputItemSelect(index, itemId)}
-							/>
-							<Input type="number" min="1" class="w-20" bind:value={formData.inputItems[index].quantity} />
-							<Button variant="ghost" size="icon" onclick={() => removeInputItem(index)}>
-								<X class="h-4 w-4" />
-							</Button>
-						</div>
-					{/each}
-					{#if formData.inputItems.length === 0}
-						<p class="text-sm text-muted-foreground">No ingredients added. Click "Add Ingredient" to add input items.</p>
-					{/if}
-				</div>
-			</div>
-
-			<!-- Category -->
-			<div class="grid gap-2">
-				<label for="category" class="text-sm font-medium">Category</label>
-				<select
-					id="category"
-					bind:value={formData.category}
-					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-				>
-					<option value="">Select a category...</option>
-					<option value="Auction flip">🏛️ Auction flip</option>
-					<option value="Forge flip">🔨 Forge flip</option>
-					<option value="Bazaar flip">🛒 Bazaar flip</option>
-					<option value="Craft flip">✨ Craft flip</option>
-				</select>
-			</div>
-
-			<!-- Notes -->
-			<div class="grid gap-2">
-				<label for="notes" class="text-sm font-medium">Notes (optional)</label>
-				<Input id="notes" placeholder="Any additional notes..." bind:value={formData.notes} />
-			</div>
-		</div>
-		<Dialog.Footer>
-			<Button type="submit" onclick={saveFlip}>
-				{editingFlip ? 'Save Changes' : 'Add Craft Flip'}
-			</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
+<EditFlipDialog
+	open={showDialog}
+	isAddingDialog={!addNewFlipDialog}
+	editingFlip={editingFlip!}
+	itemPrices={data.items}
+	{saveFlip}
+/>

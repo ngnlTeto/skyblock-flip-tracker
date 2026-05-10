@@ -1,86 +1,92 @@
 <script lang="ts">
+	import * as Popover from '$lib/components/ui/popover';
+	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import { Search, X } from 'lucide-svelte';
+	import { X } from 'lucide-svelte';
 
-	interface Props {
-		items: { itemId: string }[];
-		value: string;
+	let {
+		items,
+		value,
+		placeholder = 'Search items...',
+		onchange
+	}: {
+		items: { itemId: string; itemName: string }[];
+		value: string | undefined;
 		placeholder?: string;
-		onchange: (itemId: string) => void;
-	}
-
-	let { items, value, placeholder = 'Search items...', onchange }: Props = $props();
+		onchange: (itemId: string | undefined) => void;
+	} = $props();
 
 	let searchQuery = $state('');
-	let isOpen = $state(false);
-	let inputRef = $state<HTMLInputElement | null>(null);
+	let open = $state(false);
 
-	let baseItems = $derived(searchQuery ? items.filter((item) => item.itemId.toLowerCase().includes(searchQuery.toLowerCase())) : items);
-	let filteredItems = $derived(baseItems.slice(0, 20)); // Limit to 20 items for performance
+	function simplify(text: string): string {
+		return text.toLowerCase().replaceAll('_', ' ');
+	}
+
+	const baseItems = $derived(
+		searchQuery
+			? items.filter((item) => {
+					const simplifiedName = simplify(item.itemName);
+					const simplifiedId = simplify(item.itemId);
+					const simplifiedQuery = simplify(searchQuery);
+
+					return simplifiedName.includes(simplifiedQuery) || simplifiedId.includes(simplifiedQuery);
+				})
+			: items
+	);
+	const filteredItems = $derived(baseItems.slice(0, 50)); // Limit to 50 items for performance
 
 	function selectItem(itemId: string) {
 		onchange(itemId);
 		searchQuery = '';
-		isOpen = false;
+		open = false;
 	}
 
 	function clearSelection() {
-		onchange('');
+		onchange(undefined);
 		searchQuery = '';
-		isOpen = false;
+		open = false;
 	}
 
 	function getSelectedItemName(): string {
 		if (!value) return '';
-		const item = items.find((i) => i.itemId === value);
-		return item?.itemId || value;
+		const item = items.find((i) => i.itemId === value)!;
+		return item.itemName;
 	}
 </script>
 
-<div class="relative">
+<div class="flex flex-row items-center gap-2">
+	<Popover.Root bind:open>
+		<Popover.Trigger>
+			<Button variant="outline" class="w-56 justify-start">
+				{value ? getSelectedItemName() : placeholder}
+			</Button>
+		</Popover.Trigger>
+		<Popover.Content class="gap-0 p-0">
+			<Input class="m-2 w-[94%]" bind:value={searchQuery} placeholder="Search item..." />
+			{#if filteredItems.length > 0}
+				<div class="mt-1 max-h-60 w-full overflow-y-auto overflow-x-hidden shadow-lg">
+					{#each filteredItems as item (item.itemId)}
+						<button
+							type="button"
+							class="w-full px-3 py-2 text-left hover:bg-accent focus:bg-accent"
+							onmousedown={() => selectItem(item.itemId)}
+							title={item.itemName}
+						>
+							{item.itemName}
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="w-full rounded-md border p-4 text-center text-sm text-muted-foreground shadow-lg">
+					No items found
+				</div>
+			{/if}
+		</Popover.Content>
+	</Popover.Root>
 	{#if value}
-		<!-- Show selected item as badge -->
-		<div class="flex items-center gap-2">
-			<div class="flex min-h-10 flex-1 items-center gap-1 rounded-md border bg-background px-3 py-2">
-				<span class="font-medium">{getSelectedItemName()}</span>
-			</div>
-			<button type="button" class="rounded-md border p-2 hover:bg-accent" onclick={clearSelection}>
-				<X class="h-4 w-4" />
-			</button>
-		</div>
-	{:else}
-		<!-- Search input when nothing selected -->
-		<div class="relative">
-			<Search class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-			<Input
-				bind:ref={inputRef}
-				bind:value={searchQuery}
-				{placeholder}
-				class="pl-10"
-				onfocus={() => (isOpen = true)}
-				onblur={() => setTimeout(() => (isOpen = false), 200)}
-			/>
-		</div>
-	{/if}
-
-	<!-- Dropdown results -->
-	{#if isOpen && searchQuery && filteredItems.length > 0}
-		<div class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-background shadow-lg">
-			{#each filteredItems as item (item.itemId)}
-				<button
-					type="button"
-					class="w-full px-3 py-2 text-left hover:bg-accent focus:bg-accent"
-					onmousedown={() => selectItem(item.itemId)}
-				>
-					{item.itemId}
-				</button>
-			{/each}
-		</div>
-	{/if}
-
-	{#if isOpen && searchQuery && filteredItems.length === 0}
-		<div class="absolute z-50 mt-1 w-full rounded-md border bg-background p-3 text-center text-sm text-muted-foreground shadow-lg">
-			No items found
-		</div>
+		<button type="button" class="rounded-md border p-2 hover:bg-accent" onclick={clearSelection}>
+			<X class="h-4 w-4" />
+		</button>
 	{/if}
 </div>

@@ -28,16 +28,14 @@ export async function getAuctionPrices(): Promise<ItemPrice[]> {
 		// Process each auction
 		for (const auction of response.auctions) {
 			// Only process BIN (Buy It Now) auctions - they don't require bids
-			if (!auction.bin) {
-				continue;
-			}
+			if (!auction.bin) continue;
 
 			const itemName = auction.item_name;
 			const price = auction.starting_bid;
 
 			// Only keep the lowest BIN price for each item
 			const existing = pricesList.find((p) => p.itemName === itemName);
-			if (!existing || price < existing.buyPrice) {
+			if (!existing || (existing.buyPrice !== null && price < existing.buyPrice)) {
 				const itemId = await extractItemId(auction.item_bytes);
 				pricesList.push({
 					itemId,
@@ -53,7 +51,7 @@ export async function getAuctionPrices(): Promise<ItemPrice[]> {
 
 async function extractItemId(itemBytes: string): Promise<string> {
 	const nbtData = await extractItemBytes(itemBytes);
-	return nbtData.parsed.value.i.value.value.at(0).tag.value.ExtraAttributes.id.value;
+	return nbtData?.parsed?.value?.i?.value?.value?.at(0)?.tag?.value?.ExtraAttributes?.id?.value;
 }
 
 async function extractItemBytes(itemBytes: string): Promise<any> {
