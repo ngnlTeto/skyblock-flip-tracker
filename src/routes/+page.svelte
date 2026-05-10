@@ -49,7 +49,7 @@
 				notes: flip.notes,
 				profit:
 					outputItem.sellPrice !== null && outputItem.sellPrice !== undefined
-						? outputItem.sellPrice - sum(inputItems.map((i) => i.buyPrice ?? 0))
+						? outputItem.sellPrice - sum(inputItems.map((i) => i.buyPrice ?? 0 * i.quantity))
 						: null,
 				totalInputPrice
 			};
