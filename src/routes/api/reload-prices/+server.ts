@@ -4,15 +4,19 @@ import { getAuctionPrices, getBazaarPrices } from '$lib/server/skyblock-api';
 import { writeFileSync } from 'fs';
 import type { RequestHandler } from './$types';
 import { cleanBazaarPrices } from '$lib/edge-cases';
+import { removeDupplicateItems } from '$lib/utils';
 
 export const GET: RequestHandler = async () => {
-	const bazaarPrices = await getBazaarPrices();
-	// const auctionPrices = await getAuctionPrices();
+	console.time('Fetching bazaar prices');
+	const bazaarPrices = cleanBazaarPrices(await getBazaarPrices());
+	console.timeEnd('Fetching bazaar prices');
 
-	const cleanedBazaarPrices = cleanBazaarPrices(bazaarPrices)
+	console.time('Fetching auction prices');
+	const auctionPrices = await getAuctionPrices();
+	console.timeEnd('Fetching auction prices');
 
-	const priceList = [...cleanedBazaarPrices]; // ...auctionPrices
-	// writeFileSync("C:/Users/henry/source/repos/skyblock-data-analysis/prices.test.json", JSON.stringify(priceList, null, 2));
+	const priceList = removeDupplicateItems([...bazaarPrices, ...auctionPrices]);
+
 	await db.delete(pricesTable);
 	await db.insert(pricesTable).values(priceList);
 

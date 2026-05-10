@@ -1,21 +1,27 @@
-import type { AuctionsResponse } from '$lib/types/api';
-import { instaFetch } from '$lib/utils';
+import type { Auction, AuctionsResponse } from '$lib/types/api';
+import { instaFetch, itemIdToName, removeDupplicateItems } from '$lib/utils';
 import { gunzipSync } from 'zlib';
 import { parse } from 'prismarine-nbt';
 import type { ItemPrice } from '$lib/types/db';
 import { getItems } from './items';
+import { writeFileSync } from 'fs';
 
 export async function getAuctionPrices(): Promise<ItemPrice[]> {
-	const pricesList: ItemPrice[] = [];
 	const firstResponse: AuctionsResponse = await instaFetch('https://api.hypixel.net/v2/skyblock/auctions?page=0');
 
 	const itemMap = await getItems();
+	writeFileSync(
+		'C:/Users/henry/source/repos/skyblock-data-analysis/items.test.json',
+		JSON.stringify(Object.fromEntries(itemMap), null, 2)
+	);
 
 	if (!firstResponse.success) {
 		throw new Error('Failed to fetch auction data');
 	}
 
 	const totalPages = firstResponse.totalPages;
+
+	const bestAuctions: Auction[] = [];
 
 	// Fetch all pages sequentially
 	for (let page = 0; page < totalPages; page++) {
@@ -30,28 +36,49 @@ export async function getAuctionPrices(): Promise<ItemPrice[]> {
 			// Only process BIN (Buy It Now) auctions - they don't require bids
 			if (!auction.bin) continue;
 
-			const itemName = auction.item_name;
-			const price = auction.starting_bid;
+			const existing = bestAuctions.find((p) => p.item_name === auction.item_name);
 
-			// Only keep the lowest BIN price for each item
-			const existing = pricesList.find((p) => p.itemName === itemName);
-			if (!existing || (existing.buyPrice !== null && price < existing.buyPrice)) {
-				const itemId = await extractItemId(auction.item_bytes);
-				pricesList.push({
-					itemId,
-					itemName: itemMap.get(itemId)!,
-					buyPrice: price,
-					sellPrice: price
-				});
+			if (existing === undefined) {
+				bestAuctions.push(auction);
+				continue;
+			}
+
+			if (auction.starting_bid < existing.starting_bid) {
+				bestAuctions.splice(bestAuctions.indexOf(existing), 1, auction);
 			}
 		}
 	}
-	return pricesList;
-}
 
-async function extractItemId(itemBytes: string): Promise<string> {
-	const nbtData = await extractItemBytes(itemBytes);
-	return nbtData?.parsed?.value?.i?.value?.value?.at(0)?.tag?.value?.ExtraAttributes?.id?.value;
+	// map best auctions to item prices and set better IDs 😭
+	const pricesList: ItemPrice[] = [];
+	for (const auction of bestAuctions) {
+		const nbtData = await extractItemBytes(auction.item_bytes);
+		const extraAttributes = nbtData?.parsed?.value?.i?.value?.value?.at(0)?.tag?.value?.ExtraAttributes?.value;
+		let itemId: string = extraAttributes?.id?.value;
+		let itemName = itemMap.get(itemId) ?? auction.item_name;
+
+		if (itemId === 'PET') {
+			const petInfo = JSON.parse(extraAttributes?.petInfo?.value);
+			itemId = `${petInfo.tier}_${petInfo.type}_PET`;
+			itemName = itemIdToName(itemId);
+		}
+
+		if (itemId === 'RUNE') {
+			const runeType: string = Object.keys(extraAttributes?.runes?.value)[0];
+			const runeLevel: number = extraAttributes?.runes?.value[runeType]?.value;
+			itemId = `${runeType}_${runeLevel}_RUNE`;
+			itemName = itemIdToName(itemId);
+		}
+
+		pricesList.push({
+			itemId,
+			itemName,
+			buyPrice: auction.starting_bid,
+			sellPrice: auction.starting_bid
+		});
+	}
+
+	return removeDupplicateItems(pricesList);
 }
 
 async function extractItemBytes(itemBytes: string): Promise<any> {
