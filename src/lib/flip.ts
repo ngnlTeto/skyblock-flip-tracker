@@ -23,7 +23,7 @@ export enum FlipCategory {
 }
 
 // Get category icon and color
-export function getCategoryInfo(category: FlipCategory) {
+export function getCategoryInfo(category: FlipCategory | undefined) {
 	switch (category) {
 		case FlipCategory.AUCTION_FLIP:
 			return { icon: Gavel, color: 'text-purple-500' };

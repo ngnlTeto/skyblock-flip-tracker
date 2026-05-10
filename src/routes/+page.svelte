@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { onMount } from 'svelte';
-	import { Plus, Pencil, Trash2, Search, RefreshCw } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Search, RefreshCw, Download, Upload } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
@@ -10,7 +10,8 @@
 	import type { ItemPrice } from '$lib/types/db';
 	import { type Flip, FlipCategory, getCategoryInfo } from '$lib/flip';
 	import { invalidateAll } from '$app/navigation';
-	import { betterMax, sum } from '$lib/utils';
+	import { betterMax, formatCoins, getProfitColor, sum } from '$lib/utils';
+	import { toast } from 'svelte-sonner';
 
 	let { data }: PageProps = $props();
 
@@ -73,6 +74,8 @@
 		)
 	);
 
+	let importInput = $state<HTMLInputElement>();
+
 	function getNewFlip(): Flip {
 		return {
 			id: crypto.randomUUID(),
@@ -87,23 +90,9 @@
 		};
 	}
 
-	// Format currency
-	function formatCoins(amount: number | null) {
-		if (amount === null) return 'N/A';
-		return new Intl.NumberFormat('en-US', {
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount);
-	}
-
-	function getProfitColor(profit: number | null) {
-		if (profit === null) return 'text-muted-foreground';
-		return profit >= 0 ? 'text-green-500' : 'text-red-500';
-	}
-
 	function openDialog(flip: Flip, addNewFlip = false) {
 		editingFlip = flip;
-		showDialog = false; // Reset dialog state to trigger re-render
+		showDialog = false;
 		showDialog = true;
 		addNewFlipDialog = addNewFlip;
 	}
@@ -117,6 +106,9 @@
 		} else {
 			flips[index] = flip;
 		}
+
+		showDialog = true;
+		showDialog = false;
 	}
 
 	async function deleteFlip(id: string) {
@@ -136,6 +128,43 @@
 		}
 	}
 
+	function downloadFlips() {
+		const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(flips));
+		const downloadAnchorNode = document.createElement('a');
+		downloadAnchorNode.setAttribute('href', dataStr);
+		downloadAnchorNode.setAttribute('download', 'flips.json');
+		document.body.appendChild(downloadAnchorNode); // required for firefox
+		downloadAnchorNode.click();
+		downloadAnchorNode.remove();
+	}
+
+	function triggerImport() {
+		importInput?.click();
+	}
+
+	function importFlips(e: Event) {
+		console.log("test");
+
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			try {
+				const importedFlips = JSON.parse(event.target?.result as string);
+				if (Array.isArray(importedFlips)) {
+					flips = importedFlips;
+					toast.success('Flips imported successfully!');
+				} else {
+					toast.error('Invalid file format. Please upload a valid flips JSON file.');
+				}
+			} catch (_err) {
+				toast.error('Error reading file. Please ensure it is a valid JSON file.');
+			}
+		};
+		reader.readAsText(file);
+	}
+
 	const stats = $derived({
 		flipCount: flipPrices.length,
 		activeFlipCount: activeFlipPrices.length,
@@ -153,6 +182,8 @@
 	});
 </script>
 
+<input bind:this={importInput} class="hidden" type="file" accept=".json" onchange={importFlips} />
+
 <div class="container mx-auto px-4 py-8">
 	<!-- Header -->
 	<div class="mb-8 flex items-center justify-between">
@@ -161,6 +192,12 @@
 			<p class="text-muted-foreground">Track and manage your hypixel skyblock craft flips</p>
 		</div>
 		<div class="flex items-center gap-2">
+			<Button variant="outline" size="icon" onclick={downloadFlips} title="Export Flips">
+				<Download class="h-4 w-4" />
+			</Button>
+			<Button variant="outline" size="icon" onclick={triggerImport} title="Import Flips">
+				<Upload class="h-4 w-4" />
+			</Button>
 			<Button variant="outline" size="icon" onclick={reloadPrices} disabled={isReloading} title="Reload Prices">
 				<RefreshCw class="h-4 w-4 {isReloading ? 'animate-spin' : ''}" />
 			</Button>

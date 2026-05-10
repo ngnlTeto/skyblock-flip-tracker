@@ -46,6 +46,19 @@ export function betterMax<T>(arr: T[], callback: (item: T) => number | null): T 
 	return highestItem;
 }
 
+export function formatCoins(amount: number | null) {
+	if (amount === null) return 'N/A';
+	return new Intl.NumberFormat('en-US', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0
+	}).format(amount);
+}
+
+export function getProfitColor(profit: number | null) {
+	if (profit === null) return 'text-muted-foreground';
+	return profit >= 0 ? 'text-green-500' : 'text-red-500';
+}
+
 export function removeDupplicateItems(items: ItemPrice[]): ItemPrice[] {
 	const filteredItems: ItemPrice[] = [];
 	for (let i = 0; i < items.length; i++) {
