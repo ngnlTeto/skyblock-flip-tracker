@@ -35,7 +35,7 @@
 			};
 			const inputItems = flip.inputItems.map((i) => ({
 				...itemMap.get(i.itemId!)!,
-				quantity: flip.outputItem.quantity
+				quantity: i.quantity
 			}));
 
 			const totalInputPrice = sum(inputItems.map((i) => i.buyPrice ?? 0));
@@ -111,6 +111,9 @@
 		showDialog = false;
 	}
 
+	$inspect(flips);
+	$inspect(flipPrices);
+
 	async function deleteFlip(id: string) {
 		if (!confirm('Are you sure you want to delete this flip?')) return;
 
@@ -143,7 +146,7 @@
 	}
 
 	function importFlips(e: Event) {
-		console.log("test");
+		console.log('test');
 
 		const file = (e.target as HTMLInputElement).files?.[0];
 		if (!file) return;

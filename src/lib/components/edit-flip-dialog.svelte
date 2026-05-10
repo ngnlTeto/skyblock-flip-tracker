@@ -103,7 +103,7 @@
 								placeholder="Search ingredient..."
 								onchange={(itemId) => onInputItemSelect(index, itemId)}
 							/>
-							<Input type="number" min="1" class="w-20" bind:value={flip.inputItems[index].quantity} />
+							<Input type="number" min="1" class="w-20" bind:value={input.quantity} />
 							<Button variant="ghost" size="icon" onclick={() => onInputItemSelect(index, undefined)}>
 								<X class="h-4 w-4" />
 							</Button>
