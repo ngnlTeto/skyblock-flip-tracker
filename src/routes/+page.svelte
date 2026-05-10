@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { onMount } from 'svelte';
-	import { Plus, Pencil, Trash2, Search, RefreshCw, Gavel, Hammer, ShoppingCart, Sparkles } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Search, RefreshCw } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import EditFlipDialog from '$lib/components/edit-flip-dialog.svelte';
 	import type { ItemPrice } from '$lib/types/db';
-	import { type Flip, FlipCategory } from '$lib/types/flip';
+	import { type Flip, FlipCategory, getCategoryInfo } from '$lib/flip';
 	import { invalidateAll } from '$app/navigation';
 	import { betterMax, sum } from '$lib/utils';
 
@@ -94,22 +94,6 @@
 			minimumFractionDigits: 0,
 			maximumFractionDigits: 0
 		}).format(amount);
-	}
-
-	// Get category icon and color
-	function getCategoryInfo(category: FlipCategory) {
-		switch (category) {
-			case FlipCategory.AUCTION_FLIP:
-				return { icon: Gavel, color: 'text-purple-500' };
-			case FlipCategory.FORGE_FLIP:
-				return { icon: Hammer, color: 'text-orange-500' };
-			case FlipCategory.BAZAAR_FLIP:
-				return { icon: ShoppingCart, color: 'text-blue-500' };
-			case FlipCategory.CRAFT_FLIP:
-				return { icon: Sparkles, color: 'text-emerald-500' };
-			default:
-				return { icon: null, color: 'text-muted-foreground' };
-		}
 	}
 
 	function getProfitColor(profit: number | null) {

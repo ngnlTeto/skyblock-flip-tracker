@@ -6,7 +6,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import ItemSearch from '$lib/components/item-search.svelte';
-	import { FlipCategory, type Flip } from '$lib/types/flip';
+	import { FlipCategory, getCategoryInfo, type Flip } from '$lib/flip';
 	import type { ItemPrice } from '$lib/types/db';
 	import { toast } from 'svelte-sonner';
 
@@ -35,6 +35,8 @@
 		{ value: FlipCategory.FORGE_FLIP, label: 'Forge flip' }
 	];
 	const selectedCategory = $derived(categories.find((c) => c.value === flip.category)?.label ?? 'Select a category');
+
+	const categoryInfo = $derived(getCategoryInfo(flip.category));
 
 	function addInputItem() {
 		if (flip.inputItems.some((input) => input.itemId === undefined)) {
@@ -116,35 +118,38 @@
 			</div>
 
 			<!-- Category -->
-			<div class="grid gap-2">
-				<Label for="category">Category</Label>
-				<Select.Root type="single" name="category" bind:value={flip.category}>
-					<Select.Trigger class="w-45">
-						{selectedCategory}
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Group>
-							<Select.Label>Fruits</Select.Label>
-							{#each categories as category (category.value)}
-								<Select.Item value={category.value} label={category.label}>
-									{category.label}
-								</Select.Item>
-							{/each}
-						</Select.Group>
-					</Select.Content>
-				</Select.Root>
-
-				<!-- Notes -->
+			<div class="flex flex-row items-end gap-4">
+				<categoryInfo.icon class="h-10 w-10 {categoryInfo.color}" />
 				<div class="grid gap-2">
-					<label for="notes" class="text-sm font-medium">Notes (optional)</label>
-					<Input id="notes" placeholder="Any additional notes..." bind:value={flip.notes} />
+					<Label for="category">Category</Label>
+					<Select.Root type="single" name="category" bind:value={flip.category}>
+						<Select.Trigger class="w-45">
+							{selectedCategory}
+						</Select.Trigger>
+						<Select.Content>
+							<Select.Group>
+								<Select.Label>Fruits</Select.Label>
+								{#each categories as category (category.value)}
+									<Select.Item value={category.value} label={category.label}>
+										{category.label}
+									</Select.Item>
+								{/each}
+							</Select.Group>
+						</Select.Content>
+					</Select.Root>
 				</div>
 			</div>
-			<Dialog.Footer>
-				<Button type="submit" onclick={saveFlipWithValidation}>
-					{isAddingDialog ? 'Save Changes' : 'Add Craft Flip'}
-				</Button>
-			</Dialog.Footer>
-		</div></Dialog.Content
-	>
+
+			<!-- Notes -->
+			<div class="grid gap-2">
+				<label for="notes" class="text-sm font-medium">Notes (optional)</label>
+				<Input id="notes" placeholder="Any additional notes..." bind:value={flip.notes} />
+			</div>
+		</div>
+		<Dialog.Footer>
+			<Button type="submit" onclick={saveFlipWithValidation}>
+				{isAddingDialog ? 'Save Changes' : 'Add Craft Flip'}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
 </Dialog.Root>
