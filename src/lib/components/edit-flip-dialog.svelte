@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, X } from 'lucide-svelte';
+	import { Plus, Trash } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Select from '$lib/components/ui/select';
 	import { Input } from '$lib/components/ui/input';
@@ -8,7 +8,6 @@
 	import ItemSearch from '$lib/components/item-search.svelte';
 	import { FlipCategory, getCategoryInfo, type Flip } from '$lib/flip';
 	import type { ItemPrice } from '$lib/types/db';
-	import { toast } from 'svelte-sonner';
 
 	let {
 		open,
@@ -39,15 +38,15 @@
 	const categoryInfo = $derived(getCategoryInfo(flip.category));
 
 	function addInputItem() {
-		if (flip.inputItems.some((input) => input.itemId === undefined)) {
-			toast.warning('Please select an item for the existing ingredient before adding a new one');
-			return;
-		}
 		flip.inputItems = [...flip.inputItems, { itemId: undefined, quantity: 1 }];
 	}
 
 	function onInputItemSelect(index: number, itemId: string | undefined) {
 		flip.inputItems[index].itemId = itemId;
+	}
+
+	function removeInputItem(index: number) {
+		flip.inputItems = flip.inputItems.filter((_, i) => i !== index);
 	}
 
 	function saveFlipWithValidation(): void {
@@ -95,7 +94,7 @@
 					</Button>
 				</div>
 				<div class="space-y-2">
-					{#each flip.inputItems as input, index (input.itemId)}
+					{#each flip.inputItems as input, index (index)}
 						<div class="flex items-center gap-2">
 							<ItemSearch
 								{items}
@@ -104,8 +103,8 @@
 								onchange={(itemId) => onInputItemSelect(index, itemId)}
 							/>
 							<Input type="number" min="1" class="w-20" bind:value={input.quantity} />
-							<Button variant="ghost" size="icon" onclick={() => onInputItemSelect(index, undefined)}>
-								<X class="h-4 w-4" />
+							<Button variant="ghost" size="icon" onclick={() => removeInputItem(index)}>
+								<Trash />
 							</Button>
 						</div>
 					{/each}

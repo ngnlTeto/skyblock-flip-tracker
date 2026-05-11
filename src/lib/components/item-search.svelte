@@ -16,6 +16,8 @@
 		onchange: (itemId: string | undefined) => void;
 	} = $props();
 
+	let currentValue = $derived(value);
+
 	let searchQuery = $state('');
 	let open = $state(false);
 
@@ -38,12 +40,14 @@
 
 	function selectItem(itemId: string) {
 		onchange(itemId);
+		currentValue = itemId;
 		searchQuery = '';
 		open = false;
 	}
 
 	function clearSelection() {
 		onchange(undefined);
+		currentValue = undefined;
 		searchQuery = '';
 		open = false;
 	}
@@ -58,19 +62,19 @@
 <div class="flex flex-row items-center gap-2">
 	<Popover.Root bind:open>
 		<Popover.Trigger>
-			<Button variant="outline" class="w-56 justify-start">
+			<Button variant="outline" class="w-56 justify-start" title={currentValue}>
 				{value ? getSelectedItemName() : placeholder}
 			</Button>
 		</Popover.Trigger>
 		<Popover.Content class="gap-0 p-0">
 			<Input class="m-2 w-[94%]" bind:value={searchQuery} placeholder="Search item..." />
 			{#if filteredItems.length > 0}
-				<div class="mt-1 max-h-60 w-full overflow-y-auto overflow-x-hidden shadow-lg">
+				<div class="mt-1 max-h-60 w-full overflow-x-hidden overflow-y-auto shadow-lg">
 					{#each filteredItems as item (item.itemId)}
 						<button
 							type="button"
 							class="w-full px-3 py-2 text-left hover:bg-accent focus:bg-accent"
-							onmousedown={() => selectItem(item.itemId)}
+							onclick={() => selectItem(item.itemId)}
 							title={item.itemName}
 						>
 							{item.itemName}
@@ -85,8 +89,8 @@
 		</Popover.Content>
 	</Popover.Root>
 	{#if value}
-		<button type="button" class="rounded-md border p-2 hover:bg-accent" onclick={clearSelection}>
-			<X class="h-4 w-4" />
-		</button>
+		<Button variant="outline" size="icon" onclick={clearSelection}>
+			<X />
+		</Button>
 	{/if}
 </div>
