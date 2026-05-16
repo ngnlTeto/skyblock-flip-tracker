@@ -75,6 +75,7 @@
 							type="button"
 							class="w-full px-3 py-2 text-left hover:bg-accent focus:bg-accent"
 							onclick={() => selectItem(item.itemId)}
+							onsubmit={() => selectItem(item.itemId)}
 							title={item.itemName}
 						>
 							{item.itemName}
