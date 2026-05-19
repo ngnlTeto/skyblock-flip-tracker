@@ -4,6 +4,7 @@
 	import { Plus, Pencil, Trash2, Search, RefreshCw, Download, Upload } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import EditFlipDialog from '$lib/components/edit-flip-dialog.svelte';
@@ -55,6 +56,7 @@
 	const activeFlipPrices = $derived(flipPrices.filter((f) => f.isActive));
 
 	let searchQuery = $state('');
+	let categoryFilter = $state<FlipCategory[]>(Object.values(FlipCategory));
 	let isReloading = $state(false);
 
 	// Dialog state
@@ -64,11 +66,13 @@
 
 	// Filtered flips based on search
 	const filteredFlips = $derived(
-		flipPrices.filter(
-			(flip) =>
-				flip.outputItem.itemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				flip.outputItem.itemName.toLowerCase().includes(searchQuery.toLowerCase())
-		)
+		flipPrices
+			.filter(
+				(flip) =>
+					flip.outputItem.itemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+					flip.outputItem.itemName.toLowerCase().includes(searchQuery.toLowerCase())
+			)
+			.filter((flip) => categoryFilter.includes(flip.category!))
 	);
 
 	let importInput = $state<HTMLInputElement>();
@@ -274,10 +278,24 @@
 	</div>
 
 	<!-- Search and Filters -->
-	<div class="mb-4 flex items-center gap-4">
+	<div class="mb-4 flex flex-row items-center gap-4">
 		<div class="relative max-w-sm flex-1">
 			<Search class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 			<Input placeholder="Search flips..." bind:value={searchQuery} class="pl-10" />
+		</div>
+		<div>
+			<ToggleGroup.Root variant="outline" type="multiple" bind:value={categoryFilter}>
+				{#each Object.values(FlipCategory) as category (category)}
+					{@const categoryInfo = getCategoryInfo(category)}
+					<ToggleGroup.Item value={category} class="data-[state=on]:bg-transparent">
+						{#if categoryFilter.includes(category)}
+							<categoryInfo.icon class="size-4" color={categoryInfo.color} fill={categoryInfo.color} />
+						{:else}
+							<categoryInfo.icon class="size-4" />
+						{/if}
+					</ToggleGroup.Item>
+				{/each}
+			</ToggleGroup.Root>
 		</div>
 	</div>
 
@@ -307,7 +325,7 @@
 							<Table.Cell>
 								{#if flip.category}
 									{@const categoryInfo = getCategoryInfo(flip.category)}
-									<categoryInfo.icon class="h-5 w-5 {categoryInfo.color}" />
+									<categoryInfo.icon color={categoryInfo.color} class="size-5" />
 								{:else}
 									<span class="text-muted-foreground">-</span>
 								{/if}

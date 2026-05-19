@@ -26,14 +26,14 @@ export enum FlipCategory {
 export function getCategoryInfo(category: FlipCategory | undefined) {
 	switch (category) {
 		case FlipCategory.AUCTION_FLIP:
-			return { icon: Gavel, color: 'text-purple-500' };
+			return { icon: Gavel, color: '#a855f7' };
 		case FlipCategory.FORGE_FLIP:
-			return { icon: Hammer, color: 'text-orange-500' };
+			return { icon: Hammer, color: '#f97316' };
 		case FlipCategory.BAZAAR_FLIP:
-			return { icon: ShoppingCart, color: 'text-blue-500' };
+			return { icon: ShoppingCart, color: '#3b82f6' };
 		case FlipCategory.CRAFT_FLIP:
-			return { icon: Sparkles, color: 'text-emerald-500' };
+			return { icon: Sparkles, color: '#10b981' };
 		default:
-			return { icon: CircleSlash2, color: 'text-muted-foreground' };
+			return { icon: CircleSlash2, color: '#a1a1a1' };
 	}
 }

@@ -118,7 +118,7 @@
 
 			<!-- Category -->
 			<div class="flex flex-row items-end gap-4">
-				<categoryInfo.icon class="h-10 w-10 {categoryInfo.color}" />
+				<categoryInfo.icon color={categoryInfo.color} class="size-10" />
 				<div class="grid gap-2">
 					<Label for="category">Category</Label>
 					<Select.Root type="single" name="category" bind:value={flip.category}>
