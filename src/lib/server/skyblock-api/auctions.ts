@@ -4,16 +4,11 @@ import { gunzipSync } from 'zlib';
 import { parse } from 'prismarine-nbt';
 import type { ItemPrice } from '$lib/types/db';
 import { getItems } from './items';
-import { writeFileSync } from 'fs';
 
 export async function getAuctionPrices(): Promise<ItemPrice[]> {
 	const firstResponse: AuctionsResponse = await instaFetch('https://api.hypixel.net/v2/skyblock/auctions?page=0');
 
 	const itemMap = await getItems();
-	writeFileSync(
-		'C:/Users/henry/source/repos/skyblock-data-analysis/items.test.json',
-		JSON.stringify(Object.fromEntries(itemMap), null, 2)
-	);
 
 	if (!firstResponse.success) {
 		throw new Error('Failed to fetch auction data');

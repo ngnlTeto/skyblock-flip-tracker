@@ -56,7 +56,11 @@
 	const activeFlipPrices = $derived(flipPrices.filter((f) => f.isActive));
 
 	let searchQuery = $state('');
-	let categoryFilter = $state<FlipCategory[]>(Object.values(FlipCategory));
+	let categoryFilter = $state<FlipCategory[]>([
+		FlipCategory.AUCTION_FLIP,
+		FlipCategory.BAZAAR_FLIP,
+		FlipCategory.CRAFT_FLIP
+	]);
 	let isReloading = $state(false);
 
 	// Dialog state

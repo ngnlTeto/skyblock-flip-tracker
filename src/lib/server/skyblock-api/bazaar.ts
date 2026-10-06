@@ -11,7 +11,7 @@ export async function getBazaarPrices(): Promise<ItemPrice[]> {
 
 	const priceList: ItemPrice[] = Object.entries(bazaarResponse.products).map(([productId, product]) => ({
 		itemId: productId,
-		itemName: items.get(productId)!,
+		itemName: items.get(productId) ?? itemIdToName(productId),
 		buyPrice: product.quick_status.sellPrice,
 		sellPrice: product.quick_status.buyPrice
 	}));
@@ -22,7 +22,7 @@ export async function getBazaarPrices(): Promise<ItemPrice[]> {
 function cleanBazaarEdgeCases(items: ItemPrice[]): ItemPrice[] {
 	// Hypixel forgot to put it in the items API...
 	const sleepyHollowIndex = items.findIndex((i) => i.itemId === 'SLEEPY_HOLLOW');
-	items[sleepyHollowIndex].itemName = 'Sleepy Hollow';
+	if (sleepyHollowIndex !== -1) items[sleepyHollowIndex].itemName = 'Sleepy Hollow';
 
 	// Deprecated and only existes for backwards compatibility...
 	const bazaarCookieIndex = items.findIndex((i) => i.itemId === 'BAZAAR_COOKIE');
