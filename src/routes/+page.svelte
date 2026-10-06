@@ -367,7 +367,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={7} class="text-center py-8 text-muted-foreground">
+							<Table.Cell colspan={7} class="py-8 text-center text-muted-foreground">
 								No craft flips found. Add your first craft flip to get started!
 							</Table.Cell>
 						</Table.Row>
