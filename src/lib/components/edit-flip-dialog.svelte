@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Plus, Trash } from 'lucide-svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Select from '$lib/components/ui/select';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
-	import ItemSearch from '$lib/components/item-search.svelte';
-	import { FlipCategory, getCategoryInfo, type Flip } from '$lib/flip';
-	import type { ItemPrice } from '$lib/types/db';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import * as Select from '#lib/components/ui/select/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import ItemSearch from '#lib/components/item-search.svelte';
+	import { FlipCategory, getCategoryInfo, type Flip } from '#lib/flip.js';
+	import type { ItemPrice } from '#lib/types/db';
 
 	let {
 		open,

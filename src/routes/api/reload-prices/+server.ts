@@ -1,8 +1,8 @@
-import { db } from '$lib/server/db';
-import { pricesTable } from '$lib/server/db/schema';
-import { getAuctionPrices, getBazaarPrices } from '$lib/server/skyblock-api';
+import { db } from '#lib/server/db/index.js';
+import { pricesTable } from '#lib/server/db/schema.js';
+import { getAuctionPrices, getBazaarPrices } from '#lib/server/skyblock-api/index.js';
 import type { RequestHandler } from './$types';
-import { removeDupplicateItems } from '$lib/utils';
+import { removeDupplicateItems } from '#lib/utils.js';
 
 export const GET: RequestHandler = async () => {
 	console.time('Fetching bazaar prices');

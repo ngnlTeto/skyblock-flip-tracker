@@ -1,6 +1,6 @@
-import type { BazaarResponse } from '$lib/types/api';
-import type { ItemPrice } from '$lib/types/db';
-import { instaFetch, itemIdToName } from '$lib/utils';
+import type { BazaarResponse } from '#lib/types/api';
+import type { ItemPrice } from '#lib/types/db';
+import { instaFetch, itemIdToName } from '#lib/utils.js';
 import { getItems } from './items';
 
 const enchantmentRegex = /^ENCHANTMENT_(?<enchantment_name>[A-Z_]+)_(?<enchantment_level>\d+)$/;

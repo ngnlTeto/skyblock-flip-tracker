@@ -1,5 +1,5 @@
-import type { ItemsResponse } from '$lib/types/api';
-import { instaFetch } from '$lib/utils';
+import type { ItemsResponse } from '#lib/types/api';
+import { instaFetch } from '#lib/utils.js';
 
 export async function getItems(): Promise<Map<string, string>> {
 	const itemsResponse: ItemsResponse = await instaFetch('https://api.hypixel.net/v2/resources/skyblock/items');

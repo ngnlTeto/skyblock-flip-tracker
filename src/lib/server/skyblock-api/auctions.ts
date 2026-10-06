@@ -1,8 +1,8 @@
-import type { Auction, AuctionsResponse } from '$lib/types/api';
-import { instaFetch, itemIdToName, removeDupplicateItems } from '$lib/utils';
+import type { Auction, AuctionsResponse } from '#lib/types/api';
+import { instaFetch, itemIdToName, removeDupplicateItems } from '#lib/utils.js';
 import { gunzipSync } from 'zlib';
 import { parse } from 'prismarine-nbt';
-import type { ItemPrice } from '$lib/types/db';
+import type { ItemPrice } from '#lib/types/db';
 import { getItems } from './items';
 
 export async function getAuctionPrices(): Promise<ItemPrice[]> {

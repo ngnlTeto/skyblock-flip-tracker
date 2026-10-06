@@ -2,16 +2,16 @@
 	import type { PageProps } from './$types';
 	import { onMount } from 'svelte';
 	import { Plus, Pencil, Trash2, Search, RefreshCw, Download, Upload } from 'lucide-svelte';
-	import * as Card from '$lib/components/ui/card';
-	import * as Table from '$lib/components/ui/table';
-	import * as ToggleGroup from '$lib/components/ui/toggle-group';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import EditFlipDialog from '$lib/components/edit-flip-dialog.svelte';
-	import type { ItemPrice } from '$lib/types/db';
-	import { type Flip, FlipCategory, getCategoryInfo } from '$lib/flip';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import EditFlipDialog from '#lib/components/edit-flip-dialog.svelte';
+	import type { ItemPrice } from '#lib/types/db';
+	import { type Flip, FlipCategory, getCategoryInfo } from '#lib/flip.js';
 	import { invalidateAll } from '$app/navigation';
-	import { betterMax, formatCoins, getProfitColor, sum } from '$lib/utils';
+	import { betterMax, formatCoins, getProfitColor, sum } from '#lib/utils.js';
 	import { toast } from 'svelte-sonner';
 
 	let { data }: PageProps = $props();
